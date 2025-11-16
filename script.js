@@ -3,8 +3,8 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const G = 500; // gravity strength, tweak for fun
-let dt = 0.016; // time step ~60FPS
+const G = 400; // gravity strength
+let dt = 0.016; // time step
 
 // player
 let player = {
@@ -16,7 +16,7 @@ let player = {
     trail: []
 };
 
-// planets (mass, x, y, radius, color)
+// planets
 let planets = [
     { x: canvas.width/2, y: canvas.height/2, mass: 2000, radius: 30, color: '#4fc3f7' },
     { x: canvas.width/1.5, y: canvas.height/3, mass: 1000, radius: 20, color: '#f06292' }
@@ -27,47 +27,56 @@ let keys = {};
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
-// main loop
+// overlay buttons
+window.addEventListener('DOMContentLoaded', () => {
+    const infoBtn = document.getElementById("infoBtn");
+    const overlay = document.getElementById("overlay");
+    const closeOverlay = document.getElementById("closeOverlay");
+
+    infoBtn.addEventListener('click', () => overlay.style.display = 'flex');
+    closeOverlay.addEventListener('click', () => overlay.style.display = 'none');
+});
+
+// update game
 function update() {
-    // gravity
     let ax = 0;
     let ay = 0;
+
     for (let body of planets) {
         let dx = body.x - player.x;
         let dy = body.y - player.y;
         let distSq = dx*dx + dy*dy;
         let dist = Math.sqrt(distSq);
-        if(dist > body.radius) { // prevent infinite force
+        if(dist > body.radius) {
             let force = (G * body.mass) / distSq;
             ax += force * dx / dist;
             ay += force * dy / dist;
         }
     }
 
-    // player thrust
-    let thrust = 200;
+    // thrust controls
+    let thrust = 120; // reduce thrust for slower feel
     if(keys['ArrowUp'] || keys['w']) ay -= thrust*dt;
     if(keys['ArrowDown'] || keys['s']) ay += thrust*dt;
     if(keys['ArrowLeft'] || keys['a']) ax -= thrust*dt;
     if(keys['ArrowRight'] || keys['d']) ax += thrust*dt;
 
-    // update velocity and position
+    // update velocity and position (slower scaling)
     player.vx += ax*dt;
     player.vy += ay*dt;
-    player.x += player.vx*dt*60; // scale for smooth movement
-    player.y += player.vy*dt*60;
+    player.x += player.vx*dt*40; // reduced from 60
+    player.y += player.vy*dt*40;
 
-    // add to trail
+    // trail
     player.trail.push({x: player.x, y: player.y});
     if(player.trail.length > 100) player.trail.shift();
 
-    // collision detection
+    // collision
     for(let body of planets) {
         let dx = body.x - player.x;
         let dy = body.y - player.y;
         let dist = Math.sqrt(dx*dx + dy*dy);
         if(dist < body.radius + player.radius) {
-            // Reset player on collision
             player.x = canvas.width / 4;
             player.y = canvas.height / 2;
             player.vx = 0;
@@ -77,12 +86,12 @@ function update() {
     }
 }
 
-// draw everything
+// draw
 function draw() {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#0b0c1a";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // stars background
+    // stars
     for(let i=0; i<200; i++){
         ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
         ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1,1);
@@ -96,7 +105,7 @@ function draw() {
         ctx.fill();
     }
 
-    // player trail
+    // trail
     ctx.strokeStyle = '#fff';
     ctx.beginPath();
     for(let i=0; i<player.trail.length; i++){
@@ -106,14 +115,20 @@ function draw() {
     }
     ctx.stroke();
 
-    // player
+    // player marker
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2);
     ctx.fill();
+
+    // outline marker for visibility
+    ctx.strokeStyle = '#6b5bff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.radius+3, 0, Math.PI*2);
+    ctx.stroke();
 }
 
-// animation loop
 function loop(){
     update();
     draw();
