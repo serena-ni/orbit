@@ -6,7 +6,7 @@ canvas.height = window.innerHeight;
 const G = 500; // gravity strength, tweak for fun
 let dt = 0.016; // time step ~60FPS
 
-// Player
+// player
 let player = {
     x: canvas.width / 4,
     y: canvas.height / 2,
@@ -16,20 +16,20 @@ let player = {
     trail: []
 };
 
-// Planets (mass, x, y, radius, color)
+// planets (mass, x, y, radius, color)
 let planets = [
     { x: canvas.width/2, y: canvas.height/2, mass: 2000, radius: 30, color: '#4fc3f7' },
     { x: canvas.width/1.5, y: canvas.height/3, mass: 1000, radius: 20, color: '#f06292' }
 ];
 
-// Keys
+// keys
 let keys = {};
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
-// Main loop
+// main loop
 function update() {
-    // Gravity
+    // gravity
     let ax = 0;
     let ay = 0;
     for (let body of planets) {
@@ -44,24 +44,24 @@ function update() {
         }
     }
 
-    // Player thrust
+    // player thrust
     let thrust = 200;
     if(keys['ArrowUp'] || keys['w']) ay -= thrust*dt;
     if(keys['ArrowDown'] || keys['s']) ay += thrust*dt;
     if(keys['ArrowLeft'] || keys['a']) ax -= thrust*dt;
     if(keys['ArrowRight'] || keys['d']) ax += thrust*dt;
 
-    // Update velocity and position
+    // update velocity and position
     player.vx += ax*dt;
     player.vy += ay*dt;
     player.x += player.vx*dt*60; // scale for smooth movement
     player.y += player.vy*dt*60;
 
-    // Add to trail
+    // add to trail
     player.trail.push({x: player.x, y: player.y});
     if(player.trail.length > 100) player.trail.shift();
 
-    // Collision detection
+    // collision detection
     for(let body of planets) {
         let dx = body.x - player.x;
         let dy = body.y - player.y;
@@ -77,18 +77,18 @@ function update() {
     }
 }
 
-// Draw everything
+// draw everything
 function draw() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // Stars background
+    // stars background
     for(let i=0; i<200; i++){
         ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
         ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1,1);
     }
 
-    // Planets
+    // planets
     for(let body of planets){
         ctx.fillStyle = body.color;
         ctx.beginPath();
@@ -96,7 +96,7 @@ function draw() {
         ctx.fill();
     }
 
-    // Player trail
+    // player trail
     ctx.strokeStyle = '#fff';
     ctx.beginPath();
     for(let i=0; i<player.trail.length; i++){
@@ -106,14 +106,14 @@ function draw() {
     }
     ctx.stroke();
 
-    // Player
+    // player
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2);
     ctx.fill();
 }
 
-// Animation loop
+// animation loop
 function loop(){
     update();
     draw();
