@@ -3,40 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <title>Orbit Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
 <style>
   html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: #000;
-    font-family: sans-serif;
+    background: #0b0c1a; /* deep space */
+    font-family: 'Figtree', sans-serif;
   }
+
   canvas {
     display: block;
-    background: #000;
+    background: #0b0c1a;
   }
+
+  /* Styled Info button */
   #infoBtn {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid #fff;
+    top: 20px;
+    left: 20px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #6b5bff, #4fc3f7);
+    border: none;
+    border-radius: 12px;
     color: #fff;
+    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
     z-index: 10;
-    transition: background 0.2s;
   }
+
   #infoBtn:hover {
-    background: rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
   }
+
   #overlay {
     position: absolute;
     top: 0;
     left: 0;
     width:100%;
     height:100%;
-    background: rgba(0,0,0,0.85);
+    background: rgba(11,12,26,0.95);
     color: #fff;
     display: none;
     flex-direction: column;
@@ -46,27 +57,51 @@
     padding: 20px;
     box-sizing: border-box;
     z-index: 20;
+    font-family: 'Figtree', sans-serif;
   }
+
+  #overlay h2 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    color: #6b5bff;
+  }
+
+  #overlay p {
+    font-size: 1.15em;
+    line-height: 1.6em;
+  }
+
   #overlay button {
-    margin-top: 20px;
-    padding: 8px 12px;
+    margin-top: 25px;
+    padding: 10px 16px;
     cursor: pointer;
-    background: #fff;
-    color: #000;
+    background: #6b5bff;
+    color: #fff;
     border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  #overlay button:hover {
+    background: #4fc3f7;
+    transform: translateY(-2px);
   }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div id="infoBtn">Info</div>
+<div id="infoBtn">info</div>
 <div id="overlay">
-  <h2>Orbit Simulator Instructions</h2>
-  <p>Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to thrust your spaceship.<br>
-  Gravity from planets pulls you toward them—avoid collisions!<br>
-  Trails show your path through space.<br>
-  Try to navigate through multiple planets without hitting them.</p>
-  <button id="closeOverlay">Close</button>
+  <h2>orbit simulator instructions</h2>
+  <p>
+    use <strong>arrow keys</strong> or <strong>wasd</strong> to thrust your spaceship.<br>
+    gravity from planets pulls you toward them—avoid collisions!<br>
+    trails show your path through space.<br>
+    try to navigate through multiple planets without hitting them.
+  </p>
+  <button id="closeOverlay">close</button>
 </div>
 <script src="script.js"></script>
 </body>
