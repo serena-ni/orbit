@@ -3,10 +3,10 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const G = 400; // gravity strength
-let dt = 0.016; // time step
+const G = 600; // slightly stronger gravity
+let dt = 0.016;
 
-// player
+// Player
 let player = {
     x: canvas.width / 4,
     y: canvas.height / 2,
@@ -16,18 +16,18 @@ let player = {
     trail: []
 };
 
-// planets
+// Planets
 let planets = [
-    { x: canvas.width/2, y: canvas.height/2, mass: 2000, radius: 30, color: '#4fc3f7' },
-    { x: canvas.width/1.5, y: canvas.height/3, mass: 1000, radius: 20, color: '#f06292' }
+    { x: canvas.width/2, y: canvas.height/2, mass: 2500, radius: 30, color: '#4fc3f7' },
+    { x: canvas.width/1.5, y: canvas.height/3, mass: 1500, radius: 20, color: '#f06292' }
 ];
 
-// keys
+// Keys
 let keys = {};
 window.addEventListener('keydown', e => keys[e.key] = true);
 window.addEventListener('keyup', e => keys[e.key] = false);
 
-// overlay buttons
+// Overlay buttons
 window.addEventListener('DOMContentLoaded', () => {
     const infoBtn = document.getElementById("infoBtn");
     const overlay = document.getElementById("overlay");
@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
     closeOverlay.addEventListener('click', () => overlay.style.display = 'none');
 });
 
-// update game
+// Update game
 function update() {
     let ax = 0;
     let ay = 0;
@@ -54,24 +54,34 @@ function update() {
         }
     }
 
-    // thrust controls
-    let thrust = 120; // reduce thrust for slower feel
+    // Thrust controls (very gentle)
+    let thrust = 50;
     if(keys['ArrowUp'] || keys['w']) ay -= thrust*dt;
     if(keys['ArrowDown'] || keys['s']) ay += thrust*dt;
     if(keys['ArrowLeft'] || keys['a']) ax -= thrust*dt;
     if(keys['ArrowRight'] || keys['d']) ax += thrust*dt;
 
-    // update velocity and position (slower scaling)
+    // Update velocity
     player.vx += ax*dt;
     player.vy += ay*dt;
-    player.x += player.vx*dt*40; // reduced from 60
-    player.y += player.vy*dt*40;
 
-    // trail
+    // Velocity cap
+    let maxV = 3;
+    let speed = Math.sqrt(player.vx*player.vx + player.vy*player.vy);
+    if(speed > maxV) {
+        player.vx = (player.vx / speed) * maxV;
+        player.vy = (player.vy / speed) * maxV;
+    }
+
+    // Update position (slower for orbiting)
+    player.x += player.vx*dt*15;
+    player.y += player.vy*dt*15;
+
+    // Trail
     player.trail.push({x: player.x, y: player.y});
-    if(player.trail.length > 100) player.trail.shift();
+    if(player.trail.length > 150) player.trail.shift();
 
-    // collision
+    // Collision
     for(let body of planets) {
         let dx = body.x - player.x;
         let dy = body.y - player.y;
@@ -86,18 +96,18 @@ function update() {
     }
 }
 
-// draw
+// Draw
 function draw() {
     ctx.fillStyle = "#0b0c1a";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // stars
+    // Stars
     for(let i=0; i<200; i++){
         ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
         ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 1,1);
     }
 
-    // planets
+    // Planets
     for(let body of planets){
         ctx.fillStyle = body.color;
         ctx.beginPath();
@@ -105,7 +115,7 @@ function draw() {
         ctx.fill();
     }
 
-    // trail
+    // Trail
     ctx.strokeStyle = '#fff';
     ctx.beginPath();
     for(let i=0; i<player.trail.length; i++){
@@ -115,13 +125,13 @@ function draw() {
     }
     ctx.stroke();
 
-    // player marker
+    // Player marker
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI*2);
     ctx.fill();
 
-    // outline marker for visibility
+    // Outline marker
     ctx.strokeStyle = '#6b5bff';
     ctx.lineWidth = 2;
     ctx.beginPath();
