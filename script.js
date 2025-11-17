@@ -12,12 +12,12 @@ const planets = [
 ];
 
 // player
-const startPos = { x: canvas.width/2 - 200, y: canvas.height/2 };
+const startPos = { x: canvas.width/2 - 250, y: canvas.height/2 };
 const player = {
   x: startPos.x,
   y: startPos.y,
-  vx: 3,
-  vy: -2,
+  vx: 12,   // initial speed
+  vy: -9,
   radius: 10,
   trail: []
 };
@@ -40,8 +40,8 @@ window.addEventListener('DOMContentLoaded', () => {
   resetBtn.addEventListener('click', () => {
     player.x = startPos.x;
     player.y = startPos.y;
-    player.vx = 3;
-    player.vy = -2;
+    player.vx = 12;  // match new initial speed
+    player.vy = -9;
     player.trail = [];
   });
 });
@@ -63,8 +63,8 @@ function update() {
     }
   }
 
-  // thrust
-  const thrust = 0.2;
+  // thrust (more responsive)
+  const thrust = 0.4;  // higher for better steering
   if(keys['ArrowUp'] || keys['w']) ax += thrust;
   if(keys['ArrowDown'] || keys['s']) ax -= thrust;
   if(keys['ArrowLeft'] || keys['a']) ay -= thrust;
@@ -89,8 +89,8 @@ function update() {
       // reset
       player.x = startPos.x;
       player.y = startPos.y;
-      player.vx = 3;
-      player.vy = -2;
+      player.vx = 4;
+      player.vy = -3;
       player.trail = [];
     }
   }
