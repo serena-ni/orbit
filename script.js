@@ -7,12 +7,12 @@ const dt = 0.016;
 
 // planets with glow
 const planets = [
-  { x: canvas.width/2, y: canvas.height/2, pull: 0.5, radius: 40, color: '#4fc3f7', glow: '#81d4fa' },
-  { x: canvas.width/1.5, y: canvas.height/3, pull: 0.3, radius: 30, color: '#f06292', glow: '#f48fb1' }
+  { x: canvas.width / 2, y: canvas.height / 2, pull: 0.5, radius: 40, color: '#4fc3f7', glow: '#81d4fa' },
+  { x: canvas.width / 1.5, y: canvas.height / 3, pull: 0.3, radius: 30, color: '#f06292', glow: '#f48fb1' }
 ];
 
 // player
-const startPos = { x: canvas.width/2 - 250, y: canvas.height/2 };
+const startPos = { x: canvas.width / 2 - 250, y: canvas.height / 2 };
 const player = {
   x: startPos.x,
   y: startPos.y,
@@ -40,7 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
   resetBtn.addEventListener('click', () => {
     player.x = startPos.x;
     player.y = startPos.y;
-    player.vx = 12;  // match new initial speed
+    player.vx = 12;
     player.vy = -9;
     player.trail = [];
   });
@@ -52,23 +52,23 @@ function update() {
   let ay = 0;
 
   // gravity
-  for(const p of planets){
+  for (const p of planets) {
     const dx = p.x - player.x;
     const dy = p.y - player.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist > p.radius){
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > p.radius) {
       const force = p.pull;
       ax += force * dx / dist;
       ay += force * dy / dist;
     }
   }
 
-  // thrust (more responsive)
-  const thrust = 0.4;  // higher for better steering
-  if(keys['ArrowUp'] || keys['w']) ax += thrust;
-  if(keys['ArrowDown'] || keys['s']) ax -= thrust;
-  if(keys['ArrowLeft'] || keys['a']) ay -= thrust;
-  if(keys['ArrowRight'] || keys['d']) ay += thrust;
+  // thrust (player control)
+  const thrust = 0.4; // more responsive
+  if (keys['ArrowUp'] || keys['w']) ax += thrust;
+  if (keys['ArrowDown'] || keys['s']) ax -= thrust;
+  if (keys['ArrowLeft'] || keys['a']) ay -= thrust;
+  if (keys['ArrowRight'] || keys['d']) ay += thrust;
 
   // update velocity and position
   player.vx += ax * dt;
@@ -77,20 +77,20 @@ function update() {
   player.y += player.vy * dt;
 
   // trail
-  player.trail.push({x: player.x, y: player.y});
-  if(player.trail.length > 200) player.trail.shift();
+  player.trail.push({ x: player.x, y: player.y });
+  if (player.trail.length > 200) player.trail.shift();
 
   // collision with planets
-  for(const p of planets){
+  for (const p of planets) {
     const dx = p.x - player.x;
     const dy = p.y - player.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist < p.radius + player.radius){
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < p.radius + player.radius) {
       // reset
       player.x = startPos.x;
       player.y = startPos.y;
-      player.vx = 4;
-      player.vy = -3;
+      player.vx = 12;
+      player.vy = -9;
       player.trail = [];
     }
   }
@@ -99,39 +99,39 @@ function update() {
 // draw
 function draw() {
   ctx.fillStyle = "#0b0c1a";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // stars
-  for(let i=0;i<150;i++){
+  for (let i = 0; i < 150; i++) {
     ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
-    ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,1,1);
+    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
   }
 
   // planets with glow
-  for(const p of planets){
-    const gradient = ctx.createRadialGradient(p.x, p.y, p.radius/2, p.x, p.y, p.radius*1.5);
+  for (const p of planets) {
+    const gradient = ctx.createRadialGradient(p.x, p.y, p.radius / 2, p.x, p.y, p.radius * 1.5);
     gradient.addColorStop(0, p.glow);
     gradient.addColorStop(1, 'transparent');
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.radius*1.5,0,Math.PI*2);
+    ctx.arc(p.x, p.y, p.radius * 1.5, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
     ctx.fill();
   }
 
   // gradient trail
-  for(let i=1; i<player.trail.length; i++){
-    const t1 = player.trail[i-1];
+  for (let i = 1; i < player.trail.length; i++) {
+    const t1 = player.trail[i - 1];
     const t2 = player.trail[i];
-    const alpha = i/player.trail.length;
+    const alpha = i / player.trail.length;
     ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
     ctx.beginPath();
-    ctx.moveTo(t1.x,t1.y);
-    ctx.lineTo(t2.x,t2.y);
+    ctx.moveTo(t1.x, t1.y);
+    ctx.lineTo(t2.x, t2.y);
     ctx.stroke();
   }
 
@@ -139,14 +139,34 @@ function draw() {
   const angle = Math.atan2(player.vy, player.vx);
   ctx.fillStyle = '#fff';
   ctx.beginPath();
-  ctx.moveTo(player.x + Math.cos(angle)*12, player.y + Math.sin(angle)*12);
-  ctx.lineTo(player.x + Math.cos(angle+2.5)*6, player.y + Math.sin(angle+2.5)*6);
-  ctx.lineTo(player.x + Math.cos(angle-2.5)*6, player.y + Math.sin(angle-2.5)*6);
+  ctx.moveTo(player.x + Math.cos(angle) * 12, player.y + Math.sin(angle) * 12);
+  ctx.lineTo(player.x + Math.cos(angle + 2.5) * 6, player.y + Math.sin(angle + 2.5) * 6);
+  ctx.lineTo(player.x + Math.cos(angle - 2.5) * 6, player.y + Math.sin(angle - 2.5) * 6);
   ctx.closePath();
   ctx.fill();
+
+  // HUD - glowing left-centered
+  const hudX = 20;
+  const hudY = canvas.height / 2;
+
+  // gradient
+  const gradient = ctx.createLinearGradient(0, hudY - 20, 0, hudY + 40);
+  gradient.addColorStop(0, '#81d4fa');
+  gradient.addColorStop(1, '#f48fb1');
+
+  ctx.font = '18px Figtree, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = gradient;
+  ctx.shadowColor = 'rgba(255,255,255,0.7)';
+  ctx.shadowBlur = 8;
+
+  ctx.fillText('Controls: Arrow Keys / WASD to apply thrust', hudX, hudY - 10);
+  ctx.fillText('Objective: Curve around planets using gravity', hudX, hudY + 15);
+
+  ctx.shadowBlur = 0;
 }
 
-// loop
+// game loop
 function loop() {
   update();
   draw();
