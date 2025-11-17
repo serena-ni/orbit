@@ -36,6 +36,24 @@
     z-index: 10;
   }
 
+  #resetBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+    z-index: 10;
+  }
+
+  
   #infoBtn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0,0,0,0.35);
@@ -93,11 +111,12 @@
 <body>
 <canvas id="game"></canvas>
 <div id="infoBtn">info</div>
+<button id="resetBtn">reset</button>
 <div id="overlay">
   <h2>orbit simulator instructions</h2>
   <p>
     use <strong>arrow keys</strong> or <strong>wasd</strong> to thrust your spaceship.<br>
-    gravity from planets pulls you toward them—avoid collisions!<br>
+    gravity from planets pulls you toward them - avoid collisions!<br>
     trails show your path through space.<br>
     try to navigate through multiple planets without hitting them.
   </p>
