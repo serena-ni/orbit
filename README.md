@@ -1,6 +1,6 @@
-# Orbit Simulator
+# Orbit
 
-**Orbit Simulator** is a 2D space game where you pilot a spaceship through a dynamic planetary system. Avoid collisions, pass checkpoints, and survive as long as possible. 
+**Orbit** is a 2D space game where you pilot a spaceship through a dynamic planetary system. Avoid collisions, pass checkpoints, and survive as long as possible. 
 
 ## Controls
 
