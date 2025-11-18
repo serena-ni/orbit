@@ -1,181 +1,106 @@
-const canvas = document.getElementById("game");
+// canvas setup
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const dt = 0.016;
-
-// Planets
-const planets = [
-  { x: canvas.width / 2, y: canvas.height / 2, pull: 0.5, radius: 40, color: '#4fc3f7', glow: '#81d4fa' },
-  { x: canvas.width / 1.5, y: canvas.height / 3, pull: 0.3, radius: 30, color: '#f06292', glow: '#f48fb1' }
-];
-
-// Player
-const startPos = { x: canvas.width / 2 - 250, y: canvas.height / 2 };
-const player = {
-  x: startPos.x,
-  y: startPos.y,
-  vx: 12,
-  vy: -9,
-  radius: 10,
-  trail: []
+// game variables
+let spaceship = {
+    x: 200,
+    y: canvas.height / 2,
+    size: 40,
+    speed: 2.5
 };
 
-// Keys
+let planets = [
+    { x: 600,  y: 300, size: 80 },
+    { x: 1100, y: 500, size: 120 },
+    { x: 1700, y: 260, size: 150 },
+    { x: 2300, y: 430, size: 100 },
+    { x: 3000, y: 350, size: 200 }
+];
+
+let cameraX = 0;  // shifts world
+let cameraStartX = planets[1].x; // start camera after 2nd planet
+
 let keys = {};
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup', e => keys[e.key] = false);
+let lastTime = 0;
 
-// Buttons
-window.addEventListener('DOMContentLoaded', () => {
-  const infoBtn = document.getElementById("infoBtn");
-  const overlay = document.getElementById("overlay");
-  const closeOverlay = document.getElementById("closeOverlay");
-  const resetBtn = document.getElementById("resetBtn");
+// input handling
+document.addEventListener("keydown", (e) => { keys[e.key] = true; });
+document.addEventListener("keyup",   (e) => { keys[e.key] = false; });
 
-  infoBtn.addEventListener('click', () => overlay.style.display = 'flex');
-  closeOverlay.addEventListener('click', () => overlay.style.display = 'none');
-
-  resetBtn.addEventListener('click', () => {
-    player.x = startPos.x;
-    player.y = startPos.y;
-    player.vx = 12;
-    player.vy = -9;
-    player.trail = [];
-  });
-});
-
-// Update
-function update() {
-  let ax = 0;
-  let ay = 0;
-
-  // Gravity
-  for (const p of planets) {
-    const dx = p.x - player.x;
-    const dy = p.y - player.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist > p.radius){
-      const force = p.pull;
-      ax += force * dx / dist;
-      ay += force * dy / dist;
-    }
-  }
-
-  // Thrust
-  const thrust = 0.4;
-  if(keys['ArrowUp'] || keys['w']) ax += thrust;
-  if(keys['ArrowDown'] || keys['s']) ax -= thrust;
-  if(keys['ArrowLeft'] || keys['a']) ay -= thrust;
-  if(keys['ArrowRight'] || keys['d']) ay += thrust;
-
-  player.vx += ax * dt;
-  player.vy += ay * dt;
-  player.x += player.vx * dt;
-  player.y += player.vy * dt;
-
-  // Trail
-  player.trail.push({x: player.x, y: player.y});
-  if(player.trail.length > 200) player.trail.shift();
-
-  // Collision with planets
-  for (const p of planets) {
-    const dx = p.x - player.x;
-    const dy = p.y - player.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist < p.radius + player.radius){
-      player.x = startPos.x;
-      player.y = startPos.y;
-      player.vx = 12;
-      player.vy = -9;
-      player.trail = [];
-    }
-  }
+// reset
+function resetGame() {
+    spaceship.x = 200;
+    spaceship.y = canvas.height / 2;
+    cameraX = 0;
 }
 
-// Draw
-function draw() {
-  const camX = player.x - canvas.width / 2;
-  const camY = player.y - canvas.height / 2;
+// update
+function update(dt) {
+    // movement
+    if (keys["ArrowUp"])    spaceship.y -= spaceship.speed * dt;
+    if (keys["ArrowDown"])  spaceship.y += spaceship.speed * dt;
+    if (keys["ArrowRight"]) spaceship.x += spaceship.speed * dt;
+    if (keys["ArrowLeft"])  spaceship.x -= spaceship.speed * dt;
 
-  // background
-  ctx.fillStyle = "#0b0c1a";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+    // camera starts tracking after 2nd planet
+    if (spaceship.x > cameraStartX) {
+        cameraX = spaceship.x - cameraStartX;
+    }
+}
 
-  // stars
-  for(let i=0;i<150;i++){
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
-    const starX = Math.random() * canvas.width * 2 - camX;
-    const starY = Math.random() * canvas.height * 2 - camY;
-    ctx.fillRect(starX, starY, 1, 1);
-  }
+// draw world objects (translated)
+function drawWorld() {
+    ctx.save();
+    ctx.translate(-cameraX, 0);  // everything in world scrolls
 
-  // planets
-  for(const p of planets){
-    const px = p.x - camX;
-    const py = p.y - camY;
+    // draw planets
+    planets.forEach(p => {
+        ctx.beginPath();
+        ctx.fillStyle = "#4466ff";
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
 
-    const gradient = ctx.createRadialGradient(px, py, p.radius/2, px, py, p.radius*1.5);
-    gradient.addColorStop(0, p.glow);
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
+    // draw spaceship
+    ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.arc(px, py, p.radius*1.5,0,Math.PI*2);
+    ctx.moveTo(spaceship.x, spaceship.y - spaceship.size / 2);
+    ctx.lineTo(spaceship.x - spaceship.size / 2, spaceship.y + spaceship.size / 2);
+    ctx.lineTo(spaceship.x + spaceship.size / 2, spaceship.y + spaceship.size / 2);
+    ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(px, py, p.radius,0,Math.PI*2);
-    ctx.fill();
-  }
-
-  // trail
-  for(let i=1;i<player.trail.length;i++){
-    const t1 = player.trail[i-1];
-    const t2 = player.trail[i];
-    ctx.strokeStyle = `rgba(255,255,255,${i/player.trail.length})`;
-    ctx.beginPath();
-    ctx.moveTo(t1.x - camX, t1.y - camY);
-    ctx.lineTo(t2.x - camX, t2.y - camY);
-    ctx.stroke();
-  }
-
-  // Player
-  const px = player.x - camX;
-  const py = player.y - camY;
-  const angle = Math.atan2(player.vy, player.vx);
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.moveTo(px + Math.cos(angle)*12, py + Math.sin(angle)*12);
-  ctx.lineTo(px + Math.cos(angle+2.5)*6, py + Math.sin(angle+2.5)*6);
-  ctx.lineTo(px + Math.cos(angle-2.5)*6, py + Math.sin(angle-2.5)*6);
-  ctx.closePath();
-  ctx.fill();
-
-  // HUD
-  const hudX = 20;
-  const hudY = canvas.height/2;
-  const gradient = ctx.createLinearGradient(0, hudY-20, 0, hudY+40);
-  gradient.addColorStop(0, '#81d4fa');
-  gradient.addColorStop(1, '#f48fb1');
-
-  ctx.font = '18px Figtree, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillStyle = gradient;
-  ctx.shadowColor = 'rgba(255,255,255,0.7)';
-  ctx.shadowBlur = 8;
-
-  ctx.fillText('Controls: Arrow Keys / WASD to apply thrust', hudX, hudY - 10);
-  ctx.fillText('Objective: Curve around planets using gravity', hudX, hudY + 15);
-  ctx.shadowBlur = 0;
+    ctx.restore();
 }
 
-// loop
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
+// draw HUD
+function drawHUD() {
+    ctx.fillStyle = "white";
+    ctx.font = "20px monospace";
+    ctx.fillText(`X: ${Math.floor(spaceship.x)}`, 40, canvas.height / 2 - 20);
+    ctx.fillText(`Y: ${Math.floor(spaceship.y)}`, 40, canvas.height / 2 + 10);
 }
 
-loop();
+// main loop
+function gameLoop(timestamp) {
+    let dt = (timestamp - lastTime) * 0.06;
+    lastTime = timestamp;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    update(dt);
+    drawWorld();
+    drawHUD();
+
+    requestAnimationFrame(gameLoop);
+}
+
+requestAnimationFrame(gameLoop);
+
+// button hooks
+document.getElementById("resetBtn").onclick = resetGame;
+document.getElementById("infoBtn").onclick = () => alert("Game Info Coming Soon");
