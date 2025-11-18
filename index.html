@@ -12,17 +12,23 @@
   <button id="infoBtn">info</button>
   <button id="resetBtn">reset</button>
 
-  <div id="overlay" aria-hidden="true">
-    <div id="overlayCard">
-      <h2>orbit simulator</h2>
-      <p>
-        controls: use <strong>arrow keys</strong> or <strong>wasd</strong> to rotate and thrust.<br>
-        rotation = left/right, thrust = up. hold down for continuous thrust.<br>
-        gravity from planets pulls you — steer to curve around them. avoid collisions.
-      </p>
-      <button id="closeOverlay">close</button>
-    </div>
-  </div>
+  <div id="overlay">
+  <h2>orbit simulator instructions</h2>
+  <p>
+    use <strong>arrow keys</strong> or <strong>W/A/S/D</strong> to control your spaceship:<br>
+    &nbsp;&nbsp;• <strong>W / ↑</strong> → thrust forward<br>
+    &nbsp;&nbsp;• <strong>S / ↓</strong> → brake / slow down<br>
+    &nbsp;&nbsp;• <strong>A / ←</strong> → rotate left<br>
+    &nbsp;&nbsp;• <strong>D / →</strong> → rotate right<br>
+    gravity from planets pulls you toward them - avoid collisions!<br>
+    trails show your path through space.<br>
+    try to navigate through multiple planets without hitting them.<br>
+    checkpoints are automatically set after passing planets; if you collide, you'll respawn at the last checkpoint.<br>
+    you have <strong>3 lives</strong>.
+  </p>
+  <button id="closeOverlay">close</button>
+</div>
+
 
   <script src="script.js"></script>
 </body>
