@@ -1,4 +1,3 @@
-/* global */
 html, body {
   margin: 0;
   padding: 0;
@@ -12,69 +11,59 @@ canvas {
   background: #0b0c1a;
 }
 
-/* info button */
-#infoBtn {
+#infoBtn, #resetBtn {
   position: fixed;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 10;
+}
+
+#infoBtn {
   left: 20px;
   top: 20px;
-  padding: 12px 20px;
   background: linear-gradient(135deg, #6b5bff, #4fc3f7);
-  border: none;
-  border-radius: 12px;
   color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 10;
 }
 
-#infoBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-}
-
-/* reset button */
 #resetBtn {
-  position: fixed;
   right: 20px;
   top: 20px;
-  padding: 12px 20px;
   background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-  border: none;
-  border-radius: 12px;
   color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 10;
 }
 
-#resetBtn:hover {
+#infoBtn:hover, #resetBtn:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
-/* HUD (under info button) */
 #hudPanel {
   position: fixed;
   left: 20px;
-  top: 60px;
-  color: white;
+  top: 70px;
+  color: #fff;
   font-family: 'Figtree', sans-serif;
-  z-index: 10;
-  line-height: 1.6em;
   font-size: 16px;
+  line-height: 1.4;
+  z-index: 10;
 }
 
-/* start / instructions overlay */
+#hudPanel div {
+  margin-bottom: 6px;
+}
+
 #startOverlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width:100%;
+  height:100%;
   background: rgba(11,12,26,0.98);
   color: #fff;
   display: flex;
@@ -108,15 +97,11 @@ canvas {
   border: none;
   border-radius: 12px;
   font-weight: 600;
+  font-family: 'Figtree', sans-serif;
   transition: background 0.2s, transform 0.15s;
 }
 
 #startOverlay button:hover {
   background: #4fc3f7;
   transform: translateY(-2px);
-}
-
-/* HUD text in canvas (fallback for JS) */
-canvas + #hudPanel {
-  pointer-events: none; /* allow clicking buttons under it */
 }
