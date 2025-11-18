@@ -6,9 +6,10 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 // game variables
-let spaceship = { x: 200, y: canvas.height/2, size: 25, speed: 0, angle: 0, thrust: 0 };
+let spaceship = { x: 200, y: canvas.height/2, size: 25, speed: 0, angle: 0 };
 let lives = 3;
 let checkpoints = [{ x: 200, y: canvas.height/2 }];
+let elapsedTime = 0;
 
 let planets = [
   { x: 600, y: 300, size: 40 },
@@ -22,10 +23,17 @@ let cameraX = 0;
 let keys = {};
 let lastTime = 0;
 let gameStarted = false;
+let startTime = 0;
+
+// settings for dynamic planet generation
+const planetSpacing = { min: 400, max: 700 };
+const planetSize = { min: 40, max: 100 };
+const minY = 100;
+const maxY = canvas.height - 100;
 
 // input
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup",   e => keys[e.key] = false);
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup",   e => keys[e.key.toLowerCase()] = false);
 
 // reset to last checkpoint
 function resetToCheckpoint() {
@@ -36,24 +44,47 @@ function resetToCheckpoint() {
   spaceship.angle = 0;
 }
 
+// generate new planet ahead
+function generatePlanet() {
+  const last = planets[planets.length - 1];
+  const newX = last.x + planetSpacing.min + Math.random()*(planetSpacing.max - planetSpacing.min);
+  const newY = minY + Math.random()*(maxY - minY);
+  const newSize = planetSize.min + Math.random()*(planetSize.max - planetSize.min);
+  planets.push({ x: newX, y: newY, size: newSize });
+}
+
 // update physics
 function update(dt) {
   // rotation
-  if (keys["a"] || keys["ArrowLeft"]) spaceship.angle -= 0.05*dt;
-  if (keys["d"] || keys["ArrowRight"]) spaceship.angle += 0.05*dt;
+  if (keys["a"] || keys["arrowleft"]) spaceship.angle -= 0.05*dt;
+  if (keys["d"] || keys["arrowright"]) spaceship.angle += 0.05*dt;
 
   // thrust/brake
-  if (keys["w"] || keys["ArrowUp"]) spaceship.speed += 0.1*dt;
-  if (keys["s"] || keys["ArrowDown"]) spaceship.speed -= 0.05*dt;
+  if (keys["w"] || keys["arrowup"]) spaceship.speed += 0.1*dt;
+  if (keys["s"] || keys["arrowdown"]) spaceship.speed -= 0.05*dt;
 
   // movement
   spaceship.x += Math.cos(spaceship.angle)*spaceship.speed;
   spaceship.y += Math.sin(spaceship.angle)*spaceship.speed;
 
-  // camera
+  // camera follow
   cameraX = spaceship.x - 200;
 
-  // collisions
+  // generate new planets ahead
+  while (planets[planets.length - 1].x < spaceship.x + canvas.width) {
+    generatePlanet();
+  }
+
+  // remove planets that are far off-screen
+  planets = planets.filter(p => p.x + p.size > spaceship.x - 500);
+
+  // update elapsed time
+  const now = performance.now();
+  elapsedTime = (now - startTime) / 1000;
+  document.getElementById("timerDisplay").textContent = `Time: ${Math.floor(elapsedTime)}s`;
+  document.getElementById("livesDisplay").textContent = `Lives: ${lives}`;
+
+  // collisions and checkpoints
   planets.forEach(p => {
     const dx = p.x - spaceship.x;
     const dy = p.y - spaceship.y;
@@ -61,8 +92,8 @@ function update(dt) {
     if (dist < p.size + spaceship.size/2) {
       lives--;
       resetToCheckpoint();
-    } else if (spaceship.x > p.x + p.size) {
-      if (!checkpoints.includes(p)) checkpoints.push({x:p.x+50,y:p.y});
+    } else if (spaceship.x > p.x + p.size && !checkpoints.includes(p)) {
+      checkpoints.push({x:p.x+50, y:p.y});
     }
   });
 
@@ -71,6 +102,8 @@ function update(dt) {
     lives = 3;
     checkpoints = [{ x:200, y:canvas.height/2 }];
     resetToCheckpoint();
+    elapsedTime = 0;
+    startTime = performance.now();
   }
 }
 
@@ -102,19 +135,12 @@ function draw() {
   ctx.restore();
 
   ctx.restore();
-
-  // HUD
-  ctx.fillStyle = "white";
-  ctx.font = "20px Figtree";
-  ctx.fillText(`X: ${Math.floor(spaceship.x)}`, 20, 40);
-  ctx.fillText(`Y: ${Math.floor(spaceship.y)}`, 20, 65);
-  ctx.fillText(`Lives: ${lives}`, 20, 90);
 }
 
 // main loop
 function loop(timestamp) {
   if (!gameStarted) return;
-  let dt = (timestamp - lastTime) * 0.06;
+  let dt = (timestamp - lastTime);
   lastTime = timestamp;
 
   update(dt);
@@ -133,6 +159,7 @@ const startBtn = document.getElementById("startBtn");
 startBtn.addEventListener("click", () => {
   startOverlay.style.display = "none";
   gameStarted = true;
-  lastTime = performance.now();
+  startTime = performance.now();
+  lastTime = startTime;
   loop();
 });

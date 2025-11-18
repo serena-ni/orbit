@@ -16,12 +16,13 @@ canvas {
   position: fixed;
   left: 20px;
   top: 20px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #6b5bff, #4fc3f7);
   border: none;
   border-radius: 12px;
   color: #fff;
   font-weight: 600;
+  font-family: 'Figtree', sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   transition: transform 0.15s, box-shadow 0.15s;
@@ -38,12 +39,13 @@ canvas {
   position: fixed;
   right: 20px;
   top: 20px;
-  padding: 10px 18px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
   border: none;
   border-radius: 12px;
   color: #fff;
   font-weight: 600;
+  font-family: 'Figtree', sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   transition: transform 0.15s, box-shadow 0.15s;
@@ -53,6 +55,22 @@ canvas {
 #resetBtn:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+
+/* HUD panel under info button */
+#hudPanel {
+  position: fixed;
+  left: 20px;
+  top: 60px;
+  color: white;
+  font-family: 'Figtree', sans-serif;
+  z-index: 10;
+  line-height: 1.6em;
+  font-size: 16px; /* readable but small enough not to block screen */
+}
+
+#hudPanel div {
+  margin-bottom: 6px;
 }
 
 /* start overlay */
@@ -72,6 +90,7 @@ canvas {
   padding: 20px;
   box-sizing: border-box;
   z-index: 25;
+  font-family: 'Figtree', sans-serif;
 }
 
 #startOverlay h2 {
@@ -81,20 +100,21 @@ canvas {
 }
 
 #startOverlay p {
-  font-size: 1.15em;
+  font-size: 1.2em;
   line-height: 1.6em;
-  max-width: 450px;
+  max-width: 500px;
 }
 
 #startOverlay button {
   margin-top: 25px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   cursor: pointer;
   background: #6b5bff;
   color: #fff;
   border: none;
   border-radius: 12px;
   font-weight: 600;
+  font-family: 'Figtree', sans-serif;
   transition: background 0.2s, transform 0.15s;
 }
 

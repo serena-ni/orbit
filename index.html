@@ -12,15 +12,25 @@
 <div id="infoBtn">info</div>
 <button id="resetBtn">reset</button>
 
+<!-- HUD panel under info button -->
+<div id="hudPanel">
+  <br>
+  <div id="livesDisplay">Lives: 3</div>
+  <div id="timerDisplay">Time: 0s</div>
+  <div id="controlsDisplay">
+    controls: W = thrust ↑, S = brake ↓, A = rotate ←, D = rotate →
+  </div>
+</div>
+
 <!-- start / instructions overlay -->
 <div id="startOverlay">
   <h2>orbit simulator</h2>
   <p>
-    use <strong>arrow keys</strong> or <strong>wasd</strong> to control your spaceship:<br>
-    &nbsp;&nbsp;• <strong>W / ↑</strong> thrust forward<br>
-    &nbsp;&nbsp;• <strong>S / ↓</strong> brake / slow down<br>
-    &nbsp;&nbsp;• <strong>A / ←</strong> rotate left<br>
-    &nbsp;&nbsp;• <strong>D / →</strong> rotate right<br>
+    use <strong>arrow keys</strong> or <strong>W/A/S/D</strong> to control your spaceship:<br>
+    &nbsp;&nbsp;• <strong>W / ↑</strong> → thrust forward<br>
+    &nbsp;&nbsp;• <strong>S / ↓</strong> → brake / slow down<br>
+    &nbsp;&nbsp;• <strong>A / ←</strong> → rotate left<br>
+    &nbsp;&nbsp;• <strong>D / →</strong> → rotate right<br>
     gravity from planets pulls you toward them – avoid collisions!<br>
     trails show your path through space.<br>
     try to navigate through multiple planets without hitting them.<br>
