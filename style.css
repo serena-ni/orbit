@@ -1,108 +1,99 @@
+/* layout & theme */
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  height: 100%;
   background: #0b0c1a;
   font-family: 'Figtree', sans-serif;
+  overflow: hidden;
 }
 
-canvas {
+/* canvas fills screen */
+canvas#game {
   display: block;
+  width: 100vw;
+  height: 100vh;
   background: #0b0c1a;
 }
 
-/* info button */
+/* info button top-left */
 #infoBtn {
   position: fixed;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 10px 18px;
+  left: 16px;
+  top: 16px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, #6b5bff, #4fc3f7);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 10;
-}
-
-#infoBtn:hover {
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-}
-
-/* Reset button */
-#resetBtn {
-  position: fixed;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 10px 18px;
-  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 10;
-}
-
-#resetBtn:hover {
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-}
-
-/* Overlay */
-#overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width:100%;
-  height:100%;
-  background: rgba(11,12,26,0.95);
-  color: #fff;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  z-index: 20;
-}
-
-#overlay h2 {
-  font-size: 2em;
-  margin-bottom: 15px;
-  color: #6b5bff;
-}
-
-#overlay p {
-  font-size: 1.15em;
-  line-height: 1.6em;
-}
-
-#overlay button {
-  margin-top: 25px;
-  padding: 10px 16px;
-  cursor: pointer;
-  background: #6b5bff;
   color: #fff;
   border: none;
   border-radius: 10px;
   font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  transition: background 0.2s, transform 0.15s;
+  cursor: pointer;
+  z-index: 40;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
 
-#overlay button:hover {
-  background: #4fc3f7;
-  transform: translateY(-2px);
+/* reset button top-right */
+#resetBtn {
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 40;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+/* overlay centered card */
+#overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11,12,26,0.85);
+  z-index: 60;
+}
+
+#overlayCard {
+  width: min(680px, 92vw);
+  padding: 28px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(14,15,30,0.95), rgba(8,9,18,0.95));
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+#overlay h2 {
+  margin: 0 0 10px 0;
+  color: #6b5bff;
+  font-size: 1.6rem;
+}
+
+#overlay p {
+  margin: 6px 0 18px 0;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+#overlay button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #6b5bff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* hud text (drawn on canvas, not html) */
+/* z-index reserved for canvas + buttons; hud drawn by canvas */
+
+@media (prefers-reduced-motion: reduce) {
+  #infoBtn, #resetBtn, #overlayCard, #overlay button { transition: none; }
 }

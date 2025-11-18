@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Orbit Simulator</title>
+<meta charset="utf-8" />
+<title>orbit simulator</title>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<canvas id="game"></canvas>
-<div id="infoBtn">info</div>
-<button id="resetBtn">reset</button>
+  <canvas id="game"></canvas>
 
-<div id="overlay">
-  <h2>orbit simulator instructions</h2>
-  <p>
-    use <strong>arrow keys</strong> or <strong>WASD</strong> to thrust your spaceship.<br>
-    gravity from planets pulls you toward them - avoid collisions!<br>
-    trails show your path through space.<br>
-    try to navigate through multiple planets without hitting them.
-  </p>
-  <button id="closeOverlay">close</button>
-</div>
+  <button id="infoBtn">info</button>
+  <button id="resetBtn">reset</button>
 
-<script src="script.js"></script>
+  <div id="overlay" aria-hidden="true">
+    <div id="overlayCard">
+      <h2>orbit simulator</h2>
+      <p>
+        controls: use <strong>arrow keys</strong> or <strong>wasd</strong> to rotate and thrust.<br>
+        rotation = left/right, thrust = up. hold down for continuous thrust.<br>
+        gravity from planets pulls you — steer to curve around them. avoid collisions.
+      </p>
+      <button id="closeOverlay">close</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
