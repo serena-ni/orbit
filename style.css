@@ -1,4 +1,3 @@
-/* GLOBAL */
 html, body {
   margin: 0;
   padding: 0;
@@ -12,7 +11,7 @@ canvas {
   background: #0b0c1a;
 }
 
-/* INFO BUTTON */
+/* info button */
 #infoBtn {
   position: fixed;
   left: 20px;
@@ -34,7 +33,7 @@ canvas {
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
-/* RESET BUTTON */
+/* reset button */
 #resetBtn {
   position: fixed;
   right: 20px;
@@ -56,29 +55,37 @@ canvas {
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
-/* HUD PANEL UNDER INFO BUTTON */
+/* HUD PANEL BELOW INFO BUTTON */
 #hudPanel {
   position: fixed;
   left: 20px;
-  top: 60px;
+  top: 60px; /* below info button */
   color: white;
   line-height: 1.6em;
   font-size: 16px;
   z-index: 10;
+  background: rgba(11,12,26,0.4);
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
-/* HUD PANEL ELEMENTS */
 #hudPanel div {
   margin-bottom: 6px;
 }
 
-/* START / INSTRUCTIONS OVERLAY */
+#controlsDisplay {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #cfd8ff;
+}
+
+/* start overlay */
 #startOverlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width:100%;
+  height:100%;
   background: rgba(11,12,26,0.98);
   color: #fff;
   display: flex;
@@ -89,6 +96,7 @@ canvas {
   padding: 20px;
   box-sizing: border-box;
   z-index: 25;
+  font-family: 'Figtree', sans-serif;
 }
 
 #startOverlay h2 {

@@ -16,19 +16,18 @@
 <div id="hudPanel">
   <div id="livesDisplay"><strong>lives:</strong> 3</div>
   <div id="timerDisplay"><strong>time:</strong> 0s</div>
+  <div id="controlsDisplay">
+    controls: W = thrust ↑, S = brake ↓, A = rotate ←, D = rotate →
+  </div>
 </div>
 
-<!-- start / instructions overlay -->
+<!-- start overlay -->
 <div id="startOverlay">
   <h2>orbit simulator</h2>
   <p>
-    use <strong>arrow keys</strong> or <strong>W/A/S/D</strong> to control your spaceship:<br>
-    &nbsp;&nbsp;• <strong>W / ↑</strong> → thrust forward<br>
-    &nbsp;&nbsp;• <strong>S / ↓</strong> → brake / slow down<br>
-    &nbsp;&nbsp;• <strong>A / ←</strong> → rotate left<br>
-    &nbsp;&nbsp;• <strong>D / →</strong> → rotate right<br>
+    use <strong>arrow keys</strong> or <strong>W/A/S/D</strong> to control your spaceship.<br>
     gravity from planets pulls you toward them – avoid collisions!<br>
-    checkpoints are automatically set; if you collide, you'll respawn at the last checkpoint.<br>
+    checkpoints are automatically set after passing planets; collisions respawn you at the last checkpoint.<br>
     you have <strong>3 lives</strong>.
   </p>
   <button id="startBtn">start</button>
