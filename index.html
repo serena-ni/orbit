@@ -1,38 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Orbit</title>
-<!-- import Figtree font -->
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <canvas id="game"></canvas>
 
+<!-- start overlay (only shows start initially; reused for game over/info) -->
 <div id="startOverlay">
-  <h1>orbit</h1>
-  <p>navigate your spaceship through planets! avoid collisions and reach checkpoints to survive.</p>
-  <p>controls:</p>
-  <p>W / ↑ = thrust | S / ↓ = brake | A / ← = rotate Left | D / → = rotate Right</p>
-  <div>
-    <button id="startBtn">start</button>
-    <button id="infoBtn">info</button>
-    <button id="resetBtn">restart</button>
+  <h1 id="overlayTitle">orbit</h1>
+  <p id="overlayText">navigate your spaceship through planets! avoid collisions and reach checkpoints to survive.</p>
+
+  <div id="overlayControls">
+    <p><strong>controls</strong></p>
+    <p>W / ↑ &nbsp;= thrust &nbsp; | &nbsp; S / ↓ &nbsp;= brake</p>
+    <p>A / ← &nbsp;= rotate left &nbsp; | &nbsp; D / → &nbsp;= rotate right</p>
+  </div>
+
+  <div class="overlay-buttons">
+    <button id="startBtn" class="main-btn">start</button>
   </div>
 </div>
 
-<div id="timerDisplay">time: 0s</div>
-<div id="livesDisplay">lives: 3</div>
-<div id="controlsDisplay">
-  controls:<br>
-  W/A/S/D or ↑/↓/←/→<br>
-  thrust = W / ↑<br>
-  brake = S / ↓<br>
-  rotate = A/D or ←/→
+<!-- gameplay HUD (fixed, single copy) -->
+<div id="hud">
+  <div id="livesDisplay"><strong>lives:</strong> 3</div>
+  <div id="timerDisplay"><strong>time:</strong> 0s</div>
+
+  <div id="controlsDisplay">
+    <strong>controls</strong><br>
+    W / ↑ → thrust forward<br>
+    S / ↓ → brake / slow down<br>
+    A / ← → rotate left<br>
+    D / → → rotate right
+  </div>
+
+  <div id="hudButtons">
+    <button id="infoBtn" class="hud-btn">info</button>
+    <button id="resetBtn" class="hud-btn">restart</button>
+  </div>
 </div>
 
 <script src="script.js"></script>
