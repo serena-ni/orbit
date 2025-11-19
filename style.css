@@ -1,181 +1,96 @@
-/* global */
+@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap");
+
 html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #0b0c1a;
-  color: #ffffff;
+  background: #000;
   font-family: "Figtree", sans-serif;
-  font-weight: 400;
-  letter-spacing: 0.25px;
-}
-
-/* enforce Figtree */
-*, *::before, *::after {
-  font-family: "Figtree", sans-serif !important;
-}
-
-/* buttons */
-button {
-  font-family: "Figtree", sans-serif !important;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-
-  padding: 12px 26px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-
-  background: #ffffff10;
-  color: #ffffff;
-
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.55);
-}
-
-/* individual button gradients */
-#startBtn {
-  background: linear-gradient(135deg, #6fa8ff, #5f7bff);
-}
-
-#resetBtn {
-  background: linear-gradient(135deg, #ff6fbf, #ff8c6f);
-}
-
-#infoBtn {
-  background: linear-gradient(135deg, #6bffb4, #4fc3f7);
-}
-
-/* START OVERLAY */
-#startOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(11,12,26,0.94);
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  text-align: center;
-  z-index: 10;
-
-  opacity: 1;
-  transition: opacity 0.35s ease;
-}
-
-#startOverlay.hide {
-  opacity: 0;
-  pointer-events: none;
-}
-
-#startOverlay h1 {
-  font-size: 52px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  letter-spacing: 1px;
-}
-
-#startOverlay p {
-  max-width: 420px;
-  font-size: 18px;
-  font-weight: 400;
-  margin-bottom: 18px;
-  line-height: 1.6;
-}
-
-/* buttons container */
-#startOverlay div {
-  margin-top: 10px;
-  display: flex;
-  gap: 12px;
-}
-
-/* info modal */
-#infoModal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 360px;
-  padding: 28px;
-
-  transform: translate(-50%, -50%);
-  border-radius: 16px;
-
-  background: rgba(20,22,40,0.82);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.55);
-
-  text-align: left;
-  line-height: 1.6;
-  z-index: 12;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-#infoModal.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-#infoModal h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-weight: 700;
-  font-size: 26px;
-}
-
-#infoModal p {
-  margin: 8px 0;
-}
-
-#closeInfoBtn {
-  margin-top: 18px;
-  background: linear-gradient(135deg, #5f7bff, #6fa8ff);
-}
-
-/* HUD (in-game UI) */
-#timerDisplay,
-#livesDisplay {
-  position: absolute;
-  left: 20px;
-  font-size: 16px;
-  font-weight: 500;
-  text-shadow: 0 2px 4px #00000060;
-}
-
-#livesDisplay { top: 22px; }
-#timerDisplay { top: 46px; }
-
-#controlsDisplay {
-  position: absolute;
-  left: 20px;
-  bottom: 22px;
-  font-size: 14px;
-  line-height: 1.55;
-  opacity: 0.9;
-  max-width: 220px;
-}
-
-/* hidden during start screen */
-.hideHUD {
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* canvas */
 #game {
   display: block;
+}
+
+/* HUD */
+#hud {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  color: white;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 18px;
+}
+
+.hudBtn {
+  background: #1e2030;
+  border: 1.5px solid #5e68ff;
+  border-radius: 10px;
+  padding: 6px 14px;
+  color: white;
+  cursor: pointer;
+  font-family: "Figtree";
+  transition: 0.15s ease;
+}
+
+.hudBtn:hover {
+  background: #32355a;
+}
+
+#controlHint {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay-box {
+  background: #111224;
+  border: 2px solid #6f7cff;
+  padding: 40px 60px;
+  border-radius: 20px;
+  text-align: center;
+  color: white;
+  animation: fadeIn 0.25s ease;
+}
+
+#overlayStart {
+  padding: 10px 24px;
+  margin-top: 20px;
+  font-family: "Figtree";
+  background: #6f7cff;
+  border: none;
+  color: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+#overlayStart:hover {
+  background: #8a94ff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
 }
