@@ -1,120 +1,181 @@
 /* global */
-body {
+html, body {
   margin: 0;
+  padding: 0;
   overflow: hidden;
+  background: #0b0c1a;
+  color: #ffffff;
   font-family: "Figtree", sans-serif;
-  background: #000;
+  font-weight: 400;
+  letter-spacing: 0.25px;
 }
 
-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* overlays */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(5, 5, 15, 0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  padding: 20px;
-  backdrop-filter: blur(6px);
-}
-
-.hidden {
-  display: none !important;
-}
-
-.logo {
-  font-size: 4rem;
-  margin-bottom: 10px;
-  letter-spacing: 4px;
-}
-
-.instructions {
-  font-size: 1.1rem;
-  max-width: 420px;
-  margin-bottom: 20px;
-  opacity: 0.9;
-}
-
-.controls-box {
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-}
-
-.modal {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 25px 30px;
-  border-radius: 14px;
-  width: 380px;
-  max-width: 90%;
+/* enforce Figtree */
+*, *::before, *::after {
+  font-family: "Figtree", sans-serif !important;
 }
 
 /* buttons */
-.ui-btn {
-  background: #ffffff15;
-  border: 1px solid #ffffff40;
-  padding: 10px 20px;
-  border-radius: 10px;
-  color: white;
-  font-size: 1.1rem;
+button {
+  font-family: "Figtree", sans-serif !important;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  padding: 12px 26px;
+  border-radius: 12px;
+  border: none;
   cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: 0.2s;
+
+  background: #ffffff10;
+  color: #ffffff;
+
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.45);
 }
 
-.ui-btn:hover {
-  background: #ffffff30;
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.55);
 }
 
-.ui-btn.small {
-  font-size: 0.9rem;
-  padding: 6px 12px;
+/* individual button gradients */
+#startBtn {
+  background: linear-gradient(135deg, #6fa8ff, #5f7bff);
 }
 
-.top-left {
-  position: fixed;
-  top: 12px;
-  left: 12px;
+#resetBtn {
+  background: linear-gradient(135deg, #ff6fbf, #ff8c6f);
 }
 
-.top-right {
-  position: fixed;
-  top: 12px;
-  right: 12px;
+#infoBtn {
+  background: linear-gradient(135deg, #6bffb4, #4fc3f7);
 }
 
-/* hud */
-#stats-panel {
-  position: fixed;
-  top: 60px;
-  left: 12px;
-  color: white;
-  font-size: 1rem;
-  line-height: 1.4;
+/* START OVERLAY */
+#startOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(11,12,26,0.94);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  z-index: 10;
+
+  opacity: 1;
+  transition: opacity 0.35s ease;
 }
 
-#stats-panel span {
+#startOverlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#startOverlay h1 {
+  font-size: 52px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+#startOverlay p {
+  max-width: 420px;
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+/* buttons container */
+#startOverlay div {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+}
+
+/* info modal */
+#infoModal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 360px;
+  padding: 28px;
+
+  transform: translate(-50%, -50%);
+  border-radius: 16px;
+
+  background: rgba(20,22,40,0.82);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+
+  text-align: left;
+  line-height: 1.6;
+  z-index: 12;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+#infoModal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#infoModal h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 26px;
+}
+
+#infoModal p {
+  margin: 8px 0;
+}
+
+#closeInfoBtn {
+  margin-top: 18px;
+  background: linear-gradient(135deg, #5f7bff, #6fa8ff);
+}
+
+/* HUD (in-game UI) */
+#timerDisplay,
+#livesDisplay {
+  position: absolute;
+  left: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  text-shadow: 0 2px 4px #00000060;
+}
+
+#livesDisplay { top: 22px; }
+#timerDisplay { top: 46px; }
+
+#controlsDisplay {
+  position: absolute;
+  left: 20px;
+  bottom: 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  opacity: 0.9;
+  max-width: 220px;
+}
+
+/* hidden during start screen */
+.hideHUD {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* canvas */
+#game {
   display: block;
-  margin-bottom: 6px;
 }
-
-#control-reminder {
-  margin-top: 12px;
-  opacity: 0.85;
-  font-size: 0.9rem;
-}
-
