@@ -1,409 +1,351 @@
-// canvas setup
-const canvas = document.getElementById("game");
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// game objects & settings
-let spaceship = { x: 240, y: canvas.height / 2, vx: 0, vy: 0, angle: -Math.PI / 2, radius: 12 };
-let lives = 3;
-let elapsedTime = 0;
-let startTime = 0;
-let lastTime = 0;
-let gameStarted = false;
+// ui
+const startScreen = document.getElementById("start-screen");
+const infoOverlay = document.getElementById("info-overlay");
+const pauseOverlay = document.getElementById("pause-overlay");
+const gameoverOverlay = document.getElementById("gameover-overlay");
 
-// camera smoothing
-const camera = { x: spaceship.x, y: spaceship.y, smooth: 0.12 };
+const startBtn = document.getElementById("start-btn");
+const infoBtn = document.getElementById("info-btn");
+const closeInfoBtn = document.getElementById("close-info");
+const resumeBtn = document.getElementById("resume-btn");
+const restartBtn = document.getElementById("restart-btn");
+const resetBtn = document.getElementById("reset-btn");
 
-// planet generation settings
-const planetSpacing = { min: 420, max: 800 };
-const planetSize = { min: 36, max: 110 };
-const minY = 80;
-const maxY = () => Math.max(220, canvas.height - 140);
+const hud = document.getElementById("hud");
+const livesDisplay = document.getElementById("lives-display");
+const timeDisplay = document.getElementById("time-display");
+const finalStats = document.getElementById("final-stats");
 
-// palette
-const palette = ["#6fa8ff","#6b5bff","#4fc3f7","#8ca5ff","#5f7bff","#7fb4ff"];
+// camera
+let camX = 0;
+let camY = 0;
 
-// state arrays
-let planets = [];
-let checkpoints = [{ x: 240, y: canvas.height / 2 }];
-let checkpointIndex = -1;
+// player
+let player = {
+  x: 0,
+  y: 0,
+  angle: 0,
+  vx: 0,
+  vy: 0,
+  maxSpeed: 4,
+};
 
 // input
-const keys = {};
-window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+let keys = {};
 
-// UI elements
-const startOverlay = document.getElementById("startOverlay");
-const overlayTitle = document.getElementById("overlayTitle");
-const overlayText = document.getElementById("overlayText");
-const startBtn = document.getElementById("startBtn");
-const infoBtn = document.getElementById("infoBtn");
-const resetBtn = document.getElementById("resetBtn");
-const timerDisplay = document.getElementById("timerDisplay");
-const livesDisplay = document.getElementById("livesDisplay");
+// planets
+let planets = [];
+let checkpoints = [];
+const planetCount = 16;
 
-// particles + shake
-let particles = [];
-let shakeTime = 0;
-let shakeMagnitude = 0;
+// game state
+let playing = false;
+let paused = false;
+let lives = 3;
+let time = 0;
+let lastTime = performance.now();
+let lastCheckpoint = 0;
 
-// helpers
-function randomColor() { return palette[Math.floor(Math.random()*palette.length)]; }
-function hexToRGBA(hex, a) { const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+// events
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === " ") pauseGame();
+});
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// planet generation (more varied: sine + vertical jitter)
-function generateInitialPlanets(){
+// start
+startBtn.onclick = startGame;
+
+// info
+infoBtn.onclick = () => infoOverlay.classList.remove("hidden");
+closeInfoBtn.onclick = () => infoOverlay.classList.add("hidden");
+
+// pause
+resumeBtn.onclick = () => {
+  paused = false;
+  pauseOverlay.classList.add("hidden");
+  lastTime = performance.now();
+};
+
+// restart
+restartBtn.onclick = () => startGame();
+resetBtn.onclick = () => startGame();
+
+// game functions
+
+function startGame() {
+  startScreen.classList.add("hidden");
+  infoOverlay.classList.add("hidden");
+  pauseOverlay.classList.add("hidden");
+  gameoverOverlay.classList.add("hidden");
+
+  hud.classList.remove("hidden");
+
+  // reset
+  lives = 3;
+  time = 0;
+  lastCheckpoint = 0;
+
+  // place player
+  player.x = 0;
+  player.y = 0;
+  player.vx = 0;
+  player.vy = 0;
+  player.angle = 0;
+
+  // generate planets in a spread 2D cluster
   planets = [];
-  let x = 600;
-  for(let i=0;i<8;i++){
-    const size = planetSize.min + Math.random()*(planetSize.max - planetSize.min);
-    const yBase = minY + Math.random()*(maxY() - minY);
-    const y = clamp(yBase + 40*Math.sin(x/280) + (Math.random()-0.5)*120, minY, maxY());
-    planets.push({ x, y, size, color: randomColor() });
-    x += planetSpacing.min + Math.random()*(planetSpacing.max - planetSpacing.min);
+  checkpoints = [];
+
+  for (let i = 0; i < planetCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 400 + Math.random() * 1400;
+
+    const px = Math.cos(angle) * dist;
+    const py = Math.sin(angle) * dist;
+
+    const radius = 35 + Math.random() * 45;
+
+    const color = randomPlanetColor();
+
+    planets.push({ x: px, y: py, r: radius, color });
+    checkpoints.push({ x: px, y: py });
   }
+
+  playing = true;
+  paused = false;
+  lastTime = performance.now();
+  loop();
 }
 
-function generatePlanet(){
-  const last = planets[planets.length-1];
-  const newX = last.x + planetSpacing.min + Math.random()*(planetSpacing.max - planetSpacing.min);
-  const yBase = minY + Math.random()*(maxY() - minY);
-  const newY = clamp(yBase + 60*Math.sin(newX/250) + (Math.random()-0.5)*140, minY, maxY());
-  const newSize = planetSize.min + Math.random()*(planetSize.max - planetSize.min);
-  planets.push({ x:newX, y:newY, size:newSize, color: randomColor() });
+function pauseGame() {
+  if (!playing) return;
+  paused = !paused;
+  pauseOverlay.classList.toggle("hidden", !paused);
 }
 
-function removeFarPlanets(){
-  const left = spaceship.x - 1200;
-  planets = planets.filter(p => (p.x + p.size) > left);
+// random theme colors
+function randomPlanetColor() {
+  const palette = [
+    "#a8c7ff", "#9fdcff", "#ffc9e6", "#ffe5a3", "#ccd7ff",
+    "#97b1ff", "#e3aaff", "#8eeeff"
+  ];
+  return palette[Math.floor(Math.random() * palette.length)];
 }
 
-// safe spawn
-function isOverlappingPlanet(x,y,margin=0){
-  for(const p of planets){
-    if(Math.hypot(p.x-x,p.y-y) < p.size + spaceship.radius + margin) return true;
-  }
-  return false;
-}
+// physics
 
-function findSafeSpawnAround(tx,ty){
-  const maxTries = 60;
-  const step = 36;
-  for(let t=0;t<maxTries;t++){
-    const ang = Math.random()*Math.PI*2;
-    const r = (t+1)*step*Math.random();
-    const sx = tx + Math.cos(ang)*r;
-    const sy = clamp(ty + Math.sin(ang)*r, minY, maxY());
-    if(!isOverlappingPlanet(sx,sy,8)) return { x: sx, y: sy };
+function update(dt) {
+  // controls
+  if (keys["w"]) {
+    player.vx += Math.cos(player.angle) * 0.09;
+    player.vy += Math.sin(player.angle) * 0.09;
   }
-  return { x: tx, y: clamp(ty - 160, minY, maxY()) };
-}
-
-// checkpoint & respawn (spawn near nearest planet to checkpoint)
-function setCheckpointFromPlanetIndex(i){
-  const p = planets[i];
-  const cp = { x: p.x - Math.max(180, p.size + 60), y: clamp(p.y - p.size - 36, minY, maxY()) };
-  checkpoints.push(cp);
-  checkpointIndex = checkpoints.length - 1;
-}
-
-function respawnAtCheckpoint(){
-  // pick latest checkpoint (or start), find nearest planet to it
-  let cp = checkpoints[checkpointIndex >= 0 ? checkpointIndex : 0] || { x:240, y:canvas.height/2 };
-  // find nearest planet
-  let nearest = null;
-  for(const p of planets){
-    const d = Math.hypot(p.x - cp.x, p.y - cp.y);
-    if(!nearest || d < nearest.d){ nearest = { p, d }; }
+  if (keys["s"]) {
+    player.vx *= 0.96;
+    player.vy *= 0.96;
   }
-  if(nearest){
-    cp.x = nearest.p.x - nearest.p.size - 18;
-    cp.y = nearest.p.y - nearest.p.size - 36;
-  }
-  const safe = findSafeSpawnAround(cp.x, cp.y);
-  spaceship.x = safe.x; spaceship.y = safe.y;
-  spaceship.vx = 0; spaceship.vy = 0; spaceship.angle = -Math.PI/2;
-  camera.x = spaceship.x; camera.y = spaceship.y;
-  // clear keys so no accidental thrust on spawn
-  for(const k in keys) keys[k] = false;
-}
+  if (keys["a"]) player.angle -= 0.055;
+  if (keys["d"]) player.angle += 0.055;
 
-function resetToCheckpoint(){ respawnAtCheckpoint(); }
-
-// particles
-function createCollisionParticles(x,y){
-  for(let i=0;i<18;i++){
-    const ang = Math.random()*Math.PI*2;
-    const spd = 120 + Math.random()*180;
-    particles.push({ x,y,vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:400, maxLife:400 });
-  }
-}
-
-// update physics + logic
-function update(dtMs){
-  const s = clamp(dtMs/1000, 0, 0.06);
-  const rotSpeed = 2.8;
-  if(keys["a"] || keys["arrowleft"]) spaceship.angle -= rotSpeed*s;
-  if(keys["d"] || keys["arrowright"]) spaceship.angle += rotSpeed*s;
-  const thrustAccel = 360;
-  const brakeFactor = 0.92;
-  if(keys["w"] || keys["arrowup"]){
-    spaceship.vx += Math.cos(spaceship.angle)*thrustAccel*s;
-    spaceship.vy += Math.sin(spaceship.angle)*thrustAccel*s;
-    // small engine particle
-    if(Math.random() < 0.6) particles.push({
-      x: spaceship.x - Math.cos(spaceship.angle)*spaceship.radius*1.05,
-      y: spaceship.y - Math.sin(spaceship.angle)*spaceship.radius*1.05,
-      vx: Math.cos(spaceship.angle+Math.PI + (Math.random()-0.5)*0.8)*(18+Math.random()*40),
-      vy: Math.sin(spaceship.angle+Math.PI + (Math.random()-0.5)*0.8)*(18+Math.random()*40),
-      life: 160 + Math.random()*120, maxLife: 160 + Math.random()*120, type: 'engine'
-    });
-  }
-  if(keys["s"] || keys["arrowdown"]){
-    spaceship.vx *= brakeFactor; spaceship.vy *= brakeFactor;
+  // clamp speed
+  const speed = Math.hypot(player.vx, player.vy);
+  if (speed > player.maxSpeed) {
+    player.vx *= player.maxSpeed / speed;
+    player.vy *= player.maxSpeed / speed;
   }
 
-  // cap speed
-  const maxSpeed = 1100;
-  const spd = Math.hypot(spaceship.vx, spaceship.vy);
-  if(spd > maxSpeed){
-    const sc = maxSpeed / spd;
-    spaceship.vx *= sc; spaceship.vy *= sc;
-  }
+  // move
+  player.x += player.vx;
+  player.y += player.vy;
 
-  // drag & integrate
-  spaceship.vx *= 0.998; spaceship.vy *= 0.998;
-  spaceship.x += spaceship.vx * s; spaceship.y += spaceship.vy * s;
+  // update timer
+  time += dt / 1000;
 
-  // camera smooth follow
-  camera.x += (spaceship.x - camera.x) * camera.smooth;
-  camera.y += (spaceship.y - camera.y) * camera.smooth;
+  // collisions
+  for (let i = 0; i < planets.length; i++) {
+    let p = planets[i];
+    let d = Math.hypot(player.x - p.x, player.y - p.y);
 
-  // planet generation + cleanup
-  while(planets.length === 0 || planets[planets.length-1].x < spaceship.x + canvas.width * 1.2) generatePlanet();
-  removeFarPlanets();
+    if (d < p.r + 14) {
+      // collision
+      lives--;
+      screenFlash();
+      screenShake();
 
-  // update timer/lives DOM
-  elapsedTime = (performance.now() - startTime) / 1000;
-  timerDisplay.innerHTML = `<strong>time:</strong> ${Math.floor(elapsedTime)}s`;
-  livesDisplay.innerHTML = `<strong>lives:</strong> ${lives}`;
+      if (lives <= 0) {
+        gameOver();
+        return;
+      }
 
-  // update particles
-  for(let i=particles.length-1;i>=0;i--){
-    const p = particles[i];
-    p.life -= dtMs;
-    if(p.life <= 0){ particles.splice(i,1); continue; }
-    const dt = dtMs/1000;
-    p.x += p.vx * dt; p.y += p.vy * dt;
-    if(p.type === 'engine'){ p.vx *= 0.92; p.vy *= 0.92; } else { p.vx *= 0.975; p.vy *= 0.975; }
-  }
-
-  // collisions & checkpoints
-  for(let i=0;i<planets.length;i++){
-    const p = planets[i];
-    const dx = p.x - spaceship.x;
-    const dy = p.y - spaceship.y;
-    const dist = Math.hypot(dx, dy);
-    if(dist < p.size + spaceship.radius){
-      lives = Math.max(0, lives - 1);
-      createCollisionParticles(spaceship.x, spaceship.y);
-      // small shake
-      shakeTime = 220; shakeMagnitude = 10;
-      // set checkpoint (if not already)
-      if(checkpointIndex < i) setCheckpointFromPlanetIndex(i);
+      // respawn at nearest checkpoint
       respawnAtCheckpoint();
-      break;
-    }
-    if(spaceship.x > p.x + p.size && checkpointIndex < i){
-      setCheckpointFromPlanetIndex(i);
+      return;
     }
   }
 
-  // when lives reach zero -> show overlay as game over
-  if(lives <= 0){
-    overlayTitle.textContent = "game over";
-    overlayText.innerHTML = `you survived for ${Math.floor(elapsedTime)}s. press start to try again.`;
-    startOverlay.style.display = "flex";
-    // reset state for next run
-    lives = 3;
-    checkpoints = [{ x: 240, y: canvas.height / 2 }];
-    checkpointIndex = -1;
-    generateInitialPlanets();
-    respawnAtCheckpoint();
-    elapsedTime = 0;
-    gameStarted = false;
-    // hide hud buttons while overlay is visible
-    infoBtn.style.display = "none";
-    resetBtn.style.display = "none";
+  // reach next checkpoint
+  const cp = checkpoints[lastCheckpoint];
+  if (Math.hypot(player.x - cp.x, player.y - cp.y) < 80) {
+    lastCheckpoint = Math.min(lastCheckpoint + 1, checkpoints.length - 1);
   }
+
+  updateHUD();
 }
 
-// drawing (world)
-function draw(){
-  // clear background
-  ctx.fillStyle = "#0b0c1a";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+function respawnAtCheckpoint() {
+  const cp = checkpoints[lastCheckpoint];
+  player.x = cp.x;
+  player.y = cp.y - 120;
+  player.vx = 0;
+  player.vy = 0;
+  player.angle = Math.PI / 2;
+}
 
-  const camX = Math.round(camera.x - canvas.width / 2);
-  const camY = Math.round(camera.y - canvas.height / 2);
+function gameOver() {
+  playing = false;
+  hud.classList.add("hidden");
+  finalStats.textContent = `you survived ${time.toFixed(1)} seconds`;
+  gameoverOverlay.classList.remove("hidden");
+}
 
-  // screen shake
-  let shakeX = 0, shakeY = 0;
-  if(shakeTime > 0){
-    shakeTime -= 16;
-    shakeX = (Math.random() - 0.5) * shakeMagnitude;
-    shakeY = (Math.random() - 0.5) * shakeMagnitude;
-    shakeMagnitude *= 0.94;
-    if(shakeTime <= 0) shakeMagnitude = 0;
-  }
+function updateHUD() {
+  livesDisplay.textContent = `lives: ${lives}`;
+  timeDisplay.textContent = `time: ${time.toFixed(1)}s`;
+}
 
-  // stars (parallax)
-  ctx.fillStyle = "#ffffff22";
-  for(let i=0;i<120;i++){
-    const rx = ((i*9301+49297)%233280)/233280;
-    const ry = ((i*49297+9301)%233280)/233280;
-    const x = Math.floor(rx*(canvas.width*2)) - camX*0.28;
-    const y = Math.floor(ry*(canvas.height*2)) - camY*0.28;
-    ctx.fillRect((x%canvas.width+canvas.width)%canvas.width,(y%canvas.height+canvas.height)%canvas.height,1,1);
-  }
+// drawing
 
+function draw() {
   ctx.save();
-  ctx.translate(-camX + shakeX, -camY + shakeY);
 
-  // planets (glow + core)
-  for(const p of planets){
-    const glowRadius = p.size * 1.9;
-    const grad = ctx.createRadialGradient(p.x, p.y, p.size*0.4, p.x, p.y, glowRadius);
-    grad.addColorStop(0, hexToRGBA(p.color, 0.66));
-    grad.addColorStop(1, hexToRGBA(p.color, 0.0));
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(p.x, p.y, glowRadius, 0, Math.PI*2); ctx.fill();
+  // camera follow
+  camX = player.x - canvas.width / 2;
+  camY = player.y - canvas.height / 2;
+  ctx.translate(-camX, -camY);
 
-    ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
-  }
+  // background stars
+  drawStars();
 
-  // particles
-  for(const p of particles){
-    const a = Math.max(0, p.life / p.maxLife);
-    if(p.type === 'engine'){
-      ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = `rgba(255,190,120,${0.6 * a})`;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 1 + (1-a)*3, 0, Math.PI*2); ctx.fill();
-      ctx.globalCompositeOperation = "source-over";
-    } else {
-      ctx.fillStyle = `rgba(255,180,80,${a})`;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 2.4 + (1-a)*2.6, 0, Math.PI*2); ctx.fill();
-    }
-  }
-
-  // spaceship
-  ctx.save();
-  ctx.translate(spaceship.x, spaceship.y);
-  ctx.rotate(spaceship.angle);
-
-  // thrust flame
-  if(keys["w"] || keys["arrowup"]){
-    const flameLength = 8 + Math.random()*4;
-    ctx.fillStyle = "#ffb86c";
+  // planets
+  planets.forEach(p => {
     ctx.beginPath();
-    ctx.moveTo(-spaceship.radius*0.9, 0);
-    ctx.lineTo(-spaceship.radius*0.9-flameLength, 6);
-    ctx.lineTo(-spaceship.radius*0.9-flameLength, -6);
-    ctx.closePath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
     ctx.fill();
-  }
+
+    // glow atmosphere
+    const g = ctx.createRadialGradient(p.x, p.y, p.r, p.x, p.y, p.r + 35);
+    g.addColorStop(0, p.color + "00");
+    g.addColorStop(1, p.color + "33");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r + 35, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // player ship
+  drawShip();
+
+  ctx.restore();
+}
+
+function drawShip() {
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  ctx.rotate(player.angle);
 
   // body
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.moveTo(spaceship.radius*1.1, 0);
-  ctx.lineTo(-spaceship.radius*0.8, spaceship.radius);
-  ctx.lineTo(-spaceship.radius*0.8, -spaceship.radius);
+  ctx.moveTo(20, 0);
+  ctx.lineTo(-12, -10);
+  ctx.lineTo(-12, 10);
   ctx.closePath();
   ctx.fill();
 
+  // thrust flame
+  if (keys["w"]) {
+    ctx.fillStyle = "#ffa447";
+    ctx.beginPath();
+    ctx.moveTo(-12, -6);
+    ctx.lineTo(-25, 0);
+    ctx.lineTo(-12, 6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   ctx.restore();
-  ctx.restore();
+}
+
+function drawStars() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(camX, camY, canvas.width, canvas.height);
+
+  ctx.fillStyle = "white";
+  for (let i = 0; i < 120; i++) {
+    const x = camX + Math.random() * canvas.width;
+    const y = camY + Math.random() * canvas.height;
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
+
+// effects
+function screenFlash() {
+  const flash = document.createElement("div");
+  flash.style.position = "fixed";
+  flash.style.top = 0;
+  flash.style.left = 0;
+  flash.style.width = "100%";
+  flash.style.height = "100%";
+  flash.style.background = "rgba(255,255,255,0.25)";
+  flash.style.pointerEvents = "none";
+  flash.style.transition = "opacity 0.3s";
+  document.body.appendChild(flash);
+  setTimeout(() => flash.style.opacity = 0, 20);
+  setTimeout(() => flash.remove(), 320);
+}
+
+function screenShake() {
+  let intensity = 12;
+  let duration = 180;
+  let start = performance.now();
+
+  function shake() {
+    let now = performance.now();
+    let elapsed = now - start;
+
+    if (elapsed > duration) {
+      document.body.style.transform = "";
+      return;
+    }
+
+    let dx = (Math.random() - 0.5) * intensity;
+    let dy = (Math.random() - 0.5) * intensity;
+    document.body.style.transform = `translate(${dx}px, ${dy}px)`;
+
+    requestAnimationFrame(shake);
+  }
+  shake();
 }
 
 // main loop
-function loop(ts){
-  if(!gameStarted) return;
-  if(!lastTime) lastTime = ts;
-  const dt = ts - lastTime;
-  lastTime = ts;
+function loop() {
+  if (!playing) return;
+  if (paused) return requestAnimationFrame(loop);
+
+  let now = performance.now();
+  let dt = now - lastTime;
+  lastTime = now;
+
   update(dt);
   draw();
+
   requestAnimationFrame(loop);
 }
-
-// UI hooks
-startBtn.addEventListener("click", ()=>{
-  // restore overlay text to default for normal starts
-  overlayTitle.textContent = "orbit";
-  overlayText.innerHTML = "navigate your spaceship through planets! avoid collisions and reach checkpoints to survive.";
-  generateInitialPlanets();
-  respawnAtCheckpoint();
-  startTime = performance.now();
-  lastTime = 0;
-  elapsedTime = 0;
-  startOverlay.style.display = "none";
-  // show HUD buttons
-  infoBtn.style.display = "inline-block";
-  resetBtn.style.display = "inline-block";
-  gameStarted = true;
-  requestAnimationFrame(loop);
-});
-
-infoBtn.addEventListener("click", ()=>{
-  // show overlay with instructions (start button remains available)
-  overlayTitle.textContent = "controls & instructions";
-  overlayText.innerHTML = `
-    <strong>W / ↑</strong> — thrust forward<br>
-    <strong>S / ↓</strong> — brake / slow down<br>
-    <strong>A / ←</strong> — rotate left<br>
-    <strong>D / →</strong> — rotate right<br><br>
-    Pass planets to set checkpoints. Colliding respawns you at the last checkpoint.
-  `;
-  startOverlay.style.display = "flex";
-  // hide HUD buttons while overlay shown
-  infoBtn.style.display = "none";
-  resetBtn.style.display = "none";
-  gameStarted = false;
-});
-
-resetBtn.addEventListener("click", ()=>{
-  generateInitialPlanets();
-  checkpoints = [{ x:240, y: canvas.height/2 }];
-  checkpointIndex = -1;
-  lives = 3;
-  elapsedTime = 0;
-  startTime = performance.now();
-  respawnAtCheckpoint();
-  particles = [];
-  // ensure overlay is hidden and HUD buttons shown
-  startOverlay.style.display = "none";
-  infoBtn.style.display = "inline-block";
-  resetBtn.style.display = "inline-block";
-  // clear keys
-  for(const k in keys) keys[k] = false;
-  gameStarted = true;
-  requestAnimationFrame(loop);
-});
-
-// bootstrap
-generateInitialPlanets();
-respawnAtCheckpoint();
-startOverlay.style.display = "flex";
-// hide HUD buttons until gameplay starts
-infoBtn.style.display = "none";
-resetBtn.style.display = "none";
