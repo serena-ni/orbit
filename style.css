@@ -1,107 +1,110 @@
-html, body {
+/* global */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: 'Figtree', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background: #0b0c1a;
-  font-family: 'Figtree', sans-serif;
+  color: #fff;
 }
 
+/* canvas */
 canvas {
   display: block;
-  background: #0b0c1a;
-}
-
-#infoBtn, #resetBtn {
-  position: fixed;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  transition: transform 0.15s, box-shadow 0.15s;
-  z-index: 10;
-}
-
-#infoBtn {
-  left: 20px;
-  top: 20px;
-  background: linear-gradient(135deg, #6b5bff, #4fc3f7);
-  color: #fff;
-}
-
-#resetBtn {
-  right: 20px;
-  top: 20px;
-  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-  color: #fff;
-}
-
-#infoBtn:hover, #resetBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-}
-
-#hudPanel {
-  position: fixed;
-  left: 20px;
-  top: 70px;
-  color: #fff;
-  font-family: 'Figtree', sans-serif;
-  font-size: 16px;
-  line-height: 1.4;
-  z-index: 10;
-}
-
-#hudPanel div {
-  margin-bottom: 6px;
-}
-
-#startOverlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width:100%;
-  height:100%;
-  background: rgba(11,12,26,0.98);
-  color: #fff;
+}
+
+/* buttons */
+button {
+  font-family: 'Figtree', sans-serif;
+  background: #1f1f3d;
+  color: #ffffff;
+  border: 2px solid #6fa8ff;
+  padding: 8px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background: #6fa8ff;
+  color: #0b0c1a;
+  box-shadow: 0 0 12px #6fa8ff88;
+}
+
+/* start overlay/info/game over */
+#startOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11,12,26,0.95);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 20px;
+  z-index: 10;
   text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  z-index: 25;
 }
 
-#startOverlay h2 {
-  font-size: 2.2em;
-  margin-bottom: 15px;
-  color: #6b5bff;
+#startOverlay h1 {
+  font-size: 3em;
+  color: #6fa8ff;
+  text-shadow: 0 0 10px #6fa8ff66;
 }
 
 #startOverlay p {
-  font-size: 1.2em;
-  line-height: 1.6em;
+  font-size: 1.3em;
   max-width: 500px;
+  line-height: 1.5;
+  color: #ffffffbb;
 }
 
 #startOverlay button {
-  margin-top: 25px;
-  padding: 12px 24px;
-  cursor: pointer;
-  background: #6b5bff;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  transition: background 0.2s, transform 0.15s;
+  margin-top: 10px;
 }
 
-#startOverlay button:hover {
-  background: #4fc3f7;
-  transform: translateY(-2px);
+/* HUD */
+#timerDisplay, #livesDisplay {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  font-size: 18px;
+  text-shadow: 0 0 6px #6fa8ff55;
+}
+
+/* info button */
+#infoBtn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 5;
+}
+
+/* reset button */
+#resetBtn {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  z-index: 5;
+}
+
+/* theming additions */
+button:focus {
+  outline: none;
+}
+
+button:active {
+  transform: scale(0.95);
 }

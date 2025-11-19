@@ -1,38 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Orbit</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbit Simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<canvas id="game"></canvas>
+  <canvas id="game"></canvas>
 
-<div id="infoBtn">info</div>
-<button id="resetBtn">reset</button>
+  <!-- HUD -->
+  <div id="timerDisplay">time: 0s</div>
+  <div id="livesDisplay">lives: 3</div>
 
-<!-- HUD panel under info button -->
-<div id="hudPanel">
-  <div id="livesDisplay"><strong>lives:</strong> 3</div>
-  <div id="timerDisplay"><strong>time:</strong> 0s</div>
-  <div id="controlsDisplay">
-    <strong>controls:</strong><br>W = thrust ↑<br>S = brake ↓<br>A = rotate left (←)<br>D = rotate right (→)
+  <!-- Buttons -->
+  <button id="infoBtn">info</button>
+  <button id="resetBtn">restart</button>
+
+  <!-- Start / Game Over Overlay -->
+  <div id="startOverlay">
+    <h1>orbit</h1>
+    <p>navigate your spaceship around planets. avoid collisions and reach new checkpoints!</p>
+    <button id="startBtn">start</button>
   </div>
-</div>
 
-<!-- start overlay -->
-<div id="startOverlay">
-  <h2>orbit</h2>
-  <p>
-    use <strong>arrow keys</strong> or <strong>W/A/S/D</strong> to control your spaceship.<br><br>
-    gravity from planets pulls you toward them – avoid collisions!<br><br>
-    checkpoints are automatically set after passing planets; collisions respawn you at the last checkpoint.<br><br>
-    you have <strong>3 lives</strong>.
-  </p>
-  <button id="startBtn">start</button>
-</div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
