@@ -1,83 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbit</title>
-
-  <!-- figtree font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700&display=swap">
-
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- start screen -->
-  <div id="start-screen" class="overlay">
-    <h1 class="logo">ORBIT</h1>
-    <p class="instructions">
-      pilot your ship through deep space. avoid planets, reach checkpoints, and survive as long as possible.
-    </p>
+  <canvas id="game"></canvas>
 
-    <div class="controls-box">
-      <h3>controls</h3>
-      <p>W – thrust forward<br>A – rotate left<br>D – rotate right<br>S – brake (reverse thrust)</p>
-      <p>space – pause</p>
+  <!-- HUD -->
+  <div id="hud">
+    <div id="livesDisplay"></div>
+    <div id="timerDisplay"></div>
+    <div id="controlHint">
+      W/↑ — thrust<br>
+      S/↓ — brake<br>
+      A/← — rotate left<br>
+      D/→ — rotate right
     </div>
-
-    <button id="start-btn" class="ui-btn">start</button>
+    <button id="infoBtn" class="hudBtn">info</button>
+    <button id="resetBtn" class="hudBtn">restart</button>
   </div>
 
-  <!-- info modal -->
-  <div id="info-overlay" class="overlay hidden">
-    <div class="modal">
-      <h2>about orbit</h2>
-      <p>navigate a drifting ship through a procedurally generated starfield. each planet acts as a checkpoint. collisions cost a life. reach as far as possible before time or lives run out.</p>
-
-      <h3>controls</h3>
-      <p>W – thrust • A/D – rotate • S – brake • space – pause</p>
-
-      <button id="close-info" class="ui-btn">close</button>
+  <!-- Overlay -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-box">
+      <h1 id="overlayTitle">orbit</h1>
+      <p id="overlayText">a gravity drifting game</p>
+      <button id="overlayStart">start</button>
     </div>
   </div>
-
-  <!-- pause modal -->
-  <div id="pause-overlay" class="overlay hidden">
-    <div class="modal">
-      <h2>paused</h2>
-      <button id="resume-btn" class="ui-btn">resume</button>
-    </div>
-  </div>
-
-  <!-- game over -->
-  <div id="gameover-overlay" class="overlay hidden">
-    <div class="modal">
-      <h2>game over</h2>
-      <p id="final-stats"></p>
-      <button id="restart-btn" class="ui-btn">restart</button>
-    </div>
-  </div>
-
-  <!-- gameplay hud -->
-  <div id="hud" class="hidden">
-    <button id="info-btn" class="ui-btn small top-left">info</button>
-    <button id="reset-btn" class="ui-btn small top-right">reset</button>
-
-    <div id="stats-panel">
-      <span id="lives-display">lives: 3</span>
-      <span id="time-display">time: 0.0s</span>
-      <div id="control-reminder">
-        <strong>controls</strong><br>
-        W – thrust<br>
-        A/D – rotate<br>
-        S – brake<br>
-        space – pause
-      </div>
-    </div>
-  </div>
-
-  <canvas id="gameCanvas"></canvas>
 
   <script src="script.js"></script>
 </body>
