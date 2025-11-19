@@ -1,110 +1,69 @@
-/* global */
-* {
+html, body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: 'Figtree', sans-serif;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   background: #0b0c1a;
-  color: #fff;
+  font-family: 'Figtree', sans-serif;
 }
 
 /* canvas */
-canvas {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+canvas { display: block; background: #0b0c1a; }
 
 /* buttons */
-button {
+#infoBtn, #resetBtn, #startOverlay button {
   font-family: 'Figtree', sans-serif;
-  background: #1f1f3d;
-  color: #ffffff;
-  border: 2px solid #6fa8ff;
-  padding: 8px 18px;
+  font-weight: 600;
+  border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  background: #6fa8ff;
-  color: #0b0c1a;
-  box-shadow: 0 0 12px #6fa8ff88;
-}
-
-/* start overlay/info/game over */
-#startOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(11,12,26,0.95);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
+  padding: 12px 20px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
   z-index: 10;
-  text-align: center;
 }
 
-#startOverlay h1 {
-  font-size: 3em;
-  color: #6fa8ff;
-  text-shadow: 0 0 10px #6fa8ff66;
+#infoBtn { 
+  position: fixed; left: 20px; top: 20px; 
+  background: linear-gradient(135deg, #6b5bff, #4fc3f7); 
 }
+#infoBtn:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
 
-#startOverlay p {
-  font-size: 1.3em;
-  max-width: 500px;
-  line-height: 1.5;
-  color: #ffffffbb;
+#resetBtn { 
+  position: fixed; right: 20px; top: 20px; 
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e); 
 }
+#resetBtn:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
 
-#startOverlay button {
-  margin-top: 10px;
-}
+#startOverlay button { background: #6b5bff; }
+#startOverlay button:hover { background: #4fc3f7; transform: translateY(-2px); }
 
-/* HUD */
-#timerDisplay, #livesDisplay {
-  position: absolute;
-  top: 10px;
+/* HUD panel */
+#hudPanel {
+  position: fixed;
   left: 20px;
-  font-size: 18px;
-  text-shadow: 0 0 6px #6fa8ff55;
+  top: 60px;
+  color: white;
+  line-height: 1.6em;
+  font-size: 16px;
+  z-index: 10;
+}
+#hudPanel div { margin-bottom: 6px; }
+
+/* start overlay */
+#startOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(11,12,26,0.98);
+  color: #fff;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  padding: 20px; box-sizing: border-box;
+  z-index: 25;
 }
 
-/* info button */
-#infoBtn {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  z-index: 5;
-}
+#startOverlay h2 { font-size: 2.2em; margin-bottom: 15px; color: #6b5bff; }
 
-/* reset button */
-#resetBtn {
-  position: absolute;
-  top: 50px;
-  right: 20px;
-  z-index: 5;
-}
-
-/* theming additions */
-button:focus {
-  outline: none;
-}
-
-button:active {
-  transform: scale(0.95);
-}
+#startOverlay p { font-size: 1.2em; line-height: 1.6em; max-width: 500px; }
