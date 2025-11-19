@@ -10,15 +10,7 @@ resize();
 window.addEventListener("resize", resize);
 
 // game objects & settings
-let spaceship = {
-  x: 240,
-  y: canvas.height / 2,
-  vx: 0,
-  vy: 0,
-  angle: -Math.PI / 2,
-  radius: 12
-};
-
+let spaceship = { x: 240, y: canvas.height / 2, vx: 0, vy: 0, angle: -Math.PI / 2, radius: 12 };
 let lives = 3;
 let elapsedTime = 0;
 let startTime = 0;
@@ -37,10 +29,8 @@ const maxY = () => Math.max(200, canvas.height - 120);
 // theme palette
 const palette = ["#6fa8ff","#6b5bff","#4fc3f7","#8ca5ff","#5f7bff","#7fb4ff"];
 
-// dynamic planets array
+// planets array
 let planets = [];
-
-// checkpoints
 let checkpoints = [{ x: 240, y: canvas.height / 2 }];
 let checkpointIndex = -1;
 
@@ -74,9 +64,7 @@ function hexToRGBA(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function clamp(v, a, b) {
-  return Math.max(a, Math.min(b, v));
-}
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
 // planet generation
 function generateInitialPlanets() {
@@ -93,7 +81,8 @@ function generateInitialPlanets() {
 function generatePlanet() {
   const last = planets[planets.length - 1];
   const newX = last.x + planetSpacing.min + Math.random()*(planetSpacing.max - planetSpacing.min);
-  const newY = minY + Math.random()*(maxY() - minY);
+  const yOffset = 60 * Math.sin(newX/250) + (minY + Math.random()*(maxY() - minY));
+  const newY = clamp(yOffset, minY, maxY());
   const newSize = planetSize.min + Math.random()*(planetSize.max - planetSize.min);
   planets.push({ x:newX, y:newY, size:newSize, color: randomColor() });
 }
@@ -103,7 +92,7 @@ function removeFarPlanets() {
   planets = planets.filter(p => (p.x + p.size) > leftLimit);
 }
 
-// safe spawn logic
+// safe spawn
 function isOverlappingPlanet(x,y,margin=0) {
   for (const p of planets) {
     const dx = p.x - x;
@@ -116,7 +105,7 @@ function isOverlappingPlanet(x,y,margin=0) {
 function findSafeSpawnAround(targetX,targetY) {
   const maxTries = 40;
   const radiusStep = 48;
-  for (let t=0; t<maxTries; t++) {
+  for (let t=0;t<maxTries;t++) {
     const angle = Math.random()*Math.PI*2;
     const r = (t+1)*radiusStep*Math.random();
     const sx = targetX + Math.cos(angle)*r;
@@ -135,11 +124,18 @@ function setCheckpointFromPlanetIndex(i) {
 }
 
 function respawnAtCheckpoint() {
+  // nearest planet to checkpoint
   let cp = checkpoints[checkpointIndex>=0?checkpointIndex:0] || { x: 240, y: canvas.height/2 };
-  // Ensure nearest planet exists
-  for (let i=planets.length-1; i>=0; i--){
-    if (planets[i].x <= cp.x + 100) { cp = { x: planets[i].x - planets[i].size - 20, y: planets[i].y - planets[i].size - 36 }; break; }
+  let nearestPlanet = planets.reduce((nearest, p) => {
+    const d = Math.hypot(p.x - cp.x, p.y - cp.y);
+    return (!nearest || d < nearest.dist) ? { planet: p, dist: d } : nearest;
+  }, null);
+
+  if (nearestPlanet) {
+    cp.x = nearestPlanet.planet.x - nearestPlanet.planet.size - 20;
+    cp.y = nearestPlanet.planet.y - nearestPlanet.planet.size - 36;
   }
+
   const safe = findSafeSpawnAround(cp.x, cp.y);
   spaceship.x = safe.x;
   spaceship.y = safe.y;
@@ -150,9 +146,7 @@ function respawnAtCheckpoint() {
   camera.y = spaceship.y;
 }
 
-function resetToCheckpoint() {
-  respawnAtCheckpoint();
-}
+function resetToCheckpoint() { respawnAtCheckpoint(); }
 
 // particles
 function createCollisionParticles(x,y) {
@@ -210,8 +204,8 @@ function update(dtMs){
   // timer
   const now = performance.now();
   elapsedTime = (now - startTime)/1000;
-  timerDisplay.textContent = `Time: ${Math.floor(elapsedTime)}s`;
-  livesDisplay.textContent = `Lives: ${lives}`;
+  timerDisplay.textContent = `time: ${Math.floor(elapsedTime)}s`;
+  livesDisplay.textContent = `lives: ${lives}`;
 
   // particles
   for (let i=particles.length-1;i>=0;i--){
@@ -245,20 +239,20 @@ function update(dtMs){
   }
 
   if(lives<=0){
-    startOverlay.querySelector('h2').textContent = "Game Over";
-    startOverlay.querySelector('p').innerHTML = "You ran out of lives.<br>Click Start to try again.";
-    startOverlay.style.display="flex";
-    lives = 3;
+    alert("game over");
+    lives=3;
     checkpoints=[{x:240,y:canvas.height/2}];
     checkpointIndex=-1;
     generateInitialPlanets();
     respawnAtCheckpoint();
+    startTime = performance.now();
     elapsedTime = 0;
-    gameStarted = false;
+    startOverlay.style.display="flex";
+    gameStarted=false;
   }
 }
 
-// draw
+// draw function remains mostly the same, with HUD for controls
 function draw(){
   ctx.fillStyle="#0b0c1a";
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -343,6 +337,14 @@ function draw(){
 
   ctx.restore();
   ctx.restore();
+
+  // HUD
+  ctx.font="16px Figtree, sans-serif";
+  ctx.textAlign="left";
+  ctx.fillStyle="#ffffff";
+  ctx.fillText(`lives: ${lives}`, 20, 60);
+  ctx.fillText(`time: ${Math.floor(elapsedTime)}s`, 20, 82);
+  ctx.fillText("controls: W/A/S/D = thrust/brake/rotate", 20, 110);
 }
 
 // main loop
@@ -376,26 +378,13 @@ resetBtn.addEventListener("click", ()=>{
   lives=3;
   respawnAtCheckpoint();
   particles=[];
-  elapsedTime=0;
   startTime = performance.now();
+  elapsedTime = 0;
 });
 
 infoBtn.addEventListener("click", ()=>{
-  startOverlay.querySelector('h2').textContent = "Orbit Simulator";
-  startOverlay.querySelector('p').innerHTML = `
-    Navigate your spaceship through gravity fields of planets. Avoid collisions!<br><br>
-    <strong>Controls:</strong><br>
-    W / ↑ : Thrust forward<br>
-    S / ↓ : Brake / slow down<br>
-    A / ← : Rotate left<br>
-    D / → : Rotate right<br><br>
-    Trails show your path through space.<br>
-    Checkpoints are automatically set after passing planets; if you collide, you'll respawn at the last checkpoint.<br>
-    You have <strong>3 lives</strong>.
-  `;
-  startOverlay.style.display="flex";
+  startOverlay.style.display = "flex";
 });
 
-// bootstrap
 generateInitialPlanets();
 respawnAtCheckpoint();
