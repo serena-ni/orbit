@@ -1,35 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>orbit</title>
+
+  <!-- figtree -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <canvas id="game"></canvas>
 
-  <!-- HUD -->
-  <div id="hud">
-    <div id="livesDisplay"></div>
-    <div id="timerDisplay"></div>
-    <div id="controlHint">
-      W/↑ — thrust<br>
-      S/↓ — brake<br>
-      A/← — rotate left<br>
-      D/→ — rotate right
+  <!-- hud (hidden on start) -->
+  <div id="hud" class="hidden" role="status" aria-live="polite">
+    <div id="livesDisplay" class="hud-item"><strong>lives:</strong> 3</div>
+    <div id="timerDisplay" class="hud-item"><strong>time:</strong> 0s</div>
+
+    <div id="controlHint" class="hud-item">
+      <strong>controls</strong><br>
+      w / ↑ &nbsp;— thrust<br>
+      s / ↓ &nbsp;— brake<br>
+      a / ← &nbsp;— rotate left<br>
+      d / → &nbsp;— rotate right<br>
+      space &nbsp;— pause/resume
     </div>
-    <button id="infoBtn" class="hudBtn">info</button>
-    <button id="resetBtn" class="hudBtn">restart</button>
+
+    <div id="hudButtons" class="hud-item">
+      <button id="infoBtn" class="btn small" aria-label="info">info</button>
+      <button id="resetBtn" class="btn small" aria-label="restart">restart</button>
+    </div>
   </div>
 
-  <!-- overlay -->
-  <div id="overlay" class="overlay hidden">
-    <div class="overlay-box">
+  <!-- overlay used for start / info / game over -->
+  <div id="overlay" class="overlay">
+    <div class="overlay-box" role="dialog" aria-modal="true">
       <h1 id="overlayTitle">orbit</h1>
-      <p id="overlayText">a gravity drifting game</p>
-      <button id="overlayStart">start</button>
+      <p id="overlayText">pilot your ship through planets — avoid collisions and reach checkpoints.</p>
+      <div class="overlay-actions">
+        <button id="overlayStart" class="btn">start</button>
+      </div>
     </div>
   </div>
 
