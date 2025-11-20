@@ -1,96 +1,72 @@
-@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700&display=swap');
 
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000;
-  font-family: "Figtree", sans-serif;
-}
+* { box-sizing: border-box; font-family: 'Figtree', sans-serif; }
+html,body { margin: 0; height: 100%; background: radial-gradient(circle at 20% 20%, #071027 0%, #000814 40%, #000 100%); color: #fff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 /* canvas */
-#game {
-  display: block;
+#game { display: block; width: 100vw; height: 100vh; }
+
+/* hud */
+#hud { position: fixed; left: 18px; top: 18px; display: flex; flex-direction: column; gap: 10px; z-index: 60; pointer-events: none; }
+.hidden { display: none !important; }
+
+.hud-item {
+  pointer-events: auto;
+  background: rgba(10,12,20,0.64);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  font-size: 15px;
+  line-height: 1.35;
 }
 
-/* HUD */
-#hud {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 20;
-  color: white;
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 18px;
-}
-
-.hudBtn {
-  background: #1e2030;
-  border: 1.5px solid #5e68ff;
-  border-radius: 10px;
-  padding: 6px 14px;
-  color: white;
+/* buttons */
+.btn, button {
+  font-family: 'Figtree', sans-serif !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   cursor: pointer;
-  font-family: "Figtree";
-  transition: 0.15s ease;
+  border-radius: 12px;
+  border: none;
+  padding: 10px 18px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg,#6f7bff,#5fb6ff);
+  box-shadow: 0 8px 24px rgba(50,60,140,0.12);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
 }
 
-.hudBtn:hover {
-  background: #32355a;
-}
+button.small { padding: 8px 12px; font-size: 14px; border-radius: 10px; background: linear-gradient(135deg,#6b6bff,#6bf0d8); }
 
-#controlHint {
-  margin-top: 10px;
-  font-size: 14px;
-  opacity: 0.8;
-  line-height: 1.4;
-}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(50,60,140,0.18); }
 
-/* Overlay */
+/* overlay */
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 50;
-}
-
-.overlay.hidden {
-  display: none;
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 80;
+  background: rgba(3,6,12,0.7);
+  backdrop-filter: blur(6px);
 }
 
 .overlay-box {
-  background: #111224;
-  border: 2px solid #6f7cff;
-  padding: 40px 60px;
-  border-radius: 20px;
+  width: 460px; max-width: calc(100% - 40px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid rgba(120,130,255,0.12);
   text-align: center;
-  color: white;
-  animation: fadeIn 0.25s ease;
+  box-shadow: 0 14px 48px rgba(3,6,20,0.6);
 }
 
-#overlayStart {
-  padding: 10px 24px;
-  margin-top: 20px;
-  font-family: "Figtree";
-  background: #6f7cff;
-  border: none;
-  color: white;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 18px;
-}
+.overlay-box h1 { font-size: 40px; margin: 0 0 8px; letter-spacing: 1.6px; }
+.overlay-box p { margin: 0 0 12px; font-size: 16px; color: #dfe8ff; line-height: 1.45; }
+.overlay-actions { margin-top: 10px; display: flex; gap: 10px; justify-content: center; }
 
-#overlayStart:hover {
-  background: #8a94ff;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
+/* small devices */
+@media (max-width:520px) {
+  .overlay-box { padding: 18px; }
+  .overlay-box h1 { font-size: 32px; }
+  .hud-item { font-size: 14px; padding: 8px 10px; }
 }
