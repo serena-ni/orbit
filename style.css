@@ -1,100 +1,110 @@
-html, body {
+/* base styling */
+body, html {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background: #000;
   font-family: "Figtree", sans-serif;
+  overflow: hidden;
+  color: #fff;
 }
 
-/* canvas */
-#gameCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* buttons */
-.btn {
-  font-family: "Figtree", sans-serif;
-  font-size: 1.2rem;
-  padding: 12px 22px;
-  border-radius: 10px;
-  border: none;
-  background: white;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.2s;
-}
-
-.btn:hover {
-  transform: scale(1.05);
-}
-
-.small {
-  font-size: 0.9rem;
-  padding: 8px 14px;
-}
-
-/* screens & layout */
+/* overlay containers */
 .overlay {
-  position: absolute;
-  width: 100%;
-  height: 100vh;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
-  background: rgba(0, 0, 0, 0.45);
-  color: white;
+  z-index: 10;
 }
 
-.title {
-  font-size: 4rem;
-  margin-bottom: 30px;
-  font-weight: 700;
-}
-
-.hidden {
+.overlay.hidden {
   display: none;
 }
 
-/* HUD */
-#hud {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hud-btn {
-  width: 110px;
-}
-
-/* modal */
-.modal {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(5px);
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: #fff;
-  color: #222;
-  padding: 25px 40px;
-  border-radius: 15px;
+/* overlay box */
+.overlayBox {
+  background: rgba(20, 20, 20, 0.85);
+  padding: 30px 40px;
+  border-radius: 14px;
+  border: 1px solid #4c5aff;
+  box-shadow: 0 0 25px #4c5aff50;
   text-align: center;
-  animation: pop 0.2s ease;
 }
 
-@keyframes pop {
-  from { transform: scale(0.7); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+.overlayBox h1,
+.overlayBox h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.instructionsTitle {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.instructionsText {
+  opacity: 0.8;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+/* buttons */
+.ui-btn {
+  background: #4c5aff;
+  color: #fff;
+  border: none;
+  padding: 10px 26px;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: "Figtree", sans-serif;
+  cursor: pointer;
+  transition: 0.18s;
+}
+
+.ui-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px #4c5aff80;
+}
+
+/* ghost button */
+.ui-btn.ghost {
+  background: transparent;
+  border: 1px solid #4c5aff;
+}
+
+/* small buttons */
+.ui-btn.small {
+  padding: 5px 15px;
+  font-size: 0.8rem;
+}
+
+/* hud */
+#hud {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+}
+
+#timerDisplay, 
+#livesDisplay, 
+#controlHelp {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+#controlHelp {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+/* buttons in hud */
+#infoBtnGame {
+  margin-right: 6px;
 }
