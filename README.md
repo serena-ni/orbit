@@ -4,15 +4,14 @@
 
 ## Controls
 
-- **W / ↑** → Thrust forward  
-- **S / ↓** → Brake / slow down  
-- **A / ←** → Rotate left  
-- **D / →** → Rotate right  
+- **W / ↑**: Thrust forward  
+- **S / ↓**: Brake / slow down  
+- **A / ←**: Rotate left  
+- **D / →**: Rotate right  
 
 ## Features
 
 - Dynamic planets with glowing atmospheres  
-- Checkpoints to respawn after collisions  
 - Lives system (3 lives per game)  
 - Timer to track survival  
 - Thrust flame animation and collision particles  
@@ -22,10 +21,9 @@
 
 1. Click **Start** to begin.  
 2. Navigate your spaceship using W/A/S/D or arrow keys.  
-3. Avoid planets and pass through checkpoints to set respawn points.  
-4. Survive as long as possible without losing all lives.  
-5. Press **Reset** to respawn at your last checkpoint.  
-6. Click **Info** anytime to view instructions.
+3. Survive as long as possible without losing all lives.  
+4. Press **Reset** to respawn at your last checkpoint.  
+5. Click **Info** anytime to view instructions.
 
 ## Credits
 
