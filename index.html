@@ -1,42 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orbit</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORBIT</title>
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-  <!-- start screen -->
-  <div id="startScreen" class="overlay">
-    <h1 class="title">ORBIT</h1>
-    <button id="startBtn" class="btn">Start</button>
-  </div>
-
-  <!-- info modal -->
-  <div id="infoModal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Controls</h2>
-      <p><b>W</b> — boost forward<br>
-         <b>A / D</b> — rotate ship<br>
-         <b>Space</b> — pause</p>
-      <button id="closeInfo" class="btn small">close</button>
+  <!-- start overlay -->
+  <div id="startOverlay" class="overlay">
+    <div class="overlayBox">
+      <h1>orbit</h1>
+      <p class="instructionsTitle">controls</p>
+      <p class="instructionsText">
+        w - thrust<br>
+        a / d - rotate<br>
+        s - reverse thrust<br>
+        avoid planets, survive gravity wells, reach checkpoints
+      </p>
+      <button id="startBtn" class="ui-btn">start</button>
+      <button id="infoBtnStart" class="ui-btn ghost">info</button>
     </div>
   </div>
 
-  <!-- game UI -->
-  <div id="hud" class="hidden">
-    <div id="lives">lives: 3</div>
-    <div id="timer">time: 0.0</div>
-    <button id="infoBtn" class="btn small hud-btn">info</button>
-    <button id="restartBtn" class="btn small hud-btn">restart</button>
+  <!-- info modal -->
+  <div id="infoOverlay" class="overlay hidden">
+    <div class="overlayBox">
+      <h2>info</h2>
+      <p>
+        a space-navigation game.<br>
+        avoid planets, survive gravity wells,<br>
+        and go as far as you can.
+      </p>
+      <button id="closeInfoBtn" class="ui-btn">close</button>
+    </div>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+  <!-- ui during game -->
+  <div id="hud">
+    <div id="timerDisplay">time: 0s</div>
+    <div id="livesDisplay">lives: 3</div>
+    <div id="controlHelp">
+      w: thrust<br>
+      a/d: rotate<br>
+      s: reverse
+    </div>
+    <button id="infoBtnGame" class="ui-btn small">info</button>
+    <button id="resetBtn" class="ui-btn small">reset</button>
+  </div>
 
-  <script src="game.js"></script>
+  <canvas id="game"></canvas>
+  <script src="script.js"></script>
 </body>
 </html>
