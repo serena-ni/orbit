@@ -1,212 +1,219 @@
-const canvas = document.getElementById("gameCanvas");
+// canvas setup
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-let W, H;
 
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-/* game state */
-let running = false;
-let paused = false;
-let time = 0;
+// game objects
+let spaceship = { x: 200, y: canvas.height/2, size: 22, speed: 0, angle: 0 };
 let lives = 3;
-
+let elapsedTime = 0;
+let cameraX = 0;
 let keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+let lastTime = 0;
 
-/* ship */
-const ship = {
-  x: 0,
-  y: 0,
-  vx: 0,
-  vy: 0,
-  angle: 0,
-  size: 18
-};
+// gravity wells
+const gravityStrength = 0.00027;
 
-/* planets */
-const planets = [];
-function generatePlanets() {
-  planets.length = 0;
-  for (let i = 0; i < 14; i++) {
-    planets.push({
-      x: (Math.random() - 0.5) * 3000,
-      y: (Math.random() - 0.5) * 3000,
-      r: 40 + Math.random() * 40
-    });
+// planet parameters
+const planetSpacing = { min: 450, max: 850 };
+const planetSize = { min: 40, max: 120 };
+
+// theme palette
+const palette = ["#6fa8ff", "#6b5bff", "#4fc3f7", "#8ca5ff", "#5f7bff", "#7fb4ff"];
+
+// planets list
+let planets = [];
+
+// start & ui states
+let gameStarted = false;
+let startTime = 0;
+
+// input
+document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+// random planet color
+function randomColor() {
+  return palette[Math.floor(Math.random() * palette.length)];
+}
+
+// generate a planet
+function generatePlanet(lastX) {
+  const x = lastX + planetSpacing.min + Math.random() * (planetSpacing.max - planetSpacing.min);
+  const y = 100 + Math.random() * (canvas.height - 200);
+  const size = planetSize.min + Math.random() * (planetSize.max - planetSize.min);
+  return { x, y, size, color: randomColor() };
+}
+
+// regenerate planet field
+function generateField() {
+  planets = [];
+  let x = 600;
+  for (let i = 0; i < 12; i++) {
+    const p = generatePlanet(x);
+    x = p.x;
+    planets.push(p);
   }
 }
 
-/* particle pool */
-const MAX_PARTICLES = 250;
-const particles = Array.from({ length: MAX_PARTICLES }, () => ({
-  active: false,
-  x: 0, y: 0, vx: 0, vy: 0, life: 0
-}));
+// reset player
+function resetPlayer() {
+  spaceship.x = 200;
+  spaceship.y = canvas.height / 2;
+  spaceship.speed = 0;
+  spaceship.angle = 0;
+  cameraX = 0;
+}
 
-function spawnParticle() {
-  for (let p of particles) {
-    if (!p.active) {
-      p.active = true;
-      p.x = ship.x - Math.cos(ship.angle) * ship.size;
-      p.y = ship.y - Math.sin(ship.angle) * ship.size;
-      p.vx = -Math.cos(ship.angle) * (1 + Math.random() * 0.5);
-      p.vy = -Math.sin(ship.angle) * (1 + Math.random() * 0.5);
-      p.life = 15;
+// update physics
+function update(dt) {
+  // thrust
+  if (keys["w"]) spaceship.speed += 0.0007 * dt;
+  if (keys["s"]) spaceship.speed -= 0.0004 * dt;
+
+  // rotation
+  if (keys["a"]) spaceship.angle -= 0.004 * dt;
+  if (keys["d"]) spaceship.angle += 0.004 * dt;
+
+  // apply movement
+  spaceship.x += Math.cos(spaceship.angle) * spaceship.speed;
+  spaceship.y += Math.sin(spaceship.angle) * spaceship.speed;
+
+  // apply gravity wells
+  for (let p of planets) {
+    const dx = p.x - spaceship.x;
+    const dy = p.y - spaceship.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < p.size * 5) {
+      const force = gravityStrength * (p.size * 2) / dist;
+      spaceship.x += dx * force * dt;
+      spaceship.y += dy * force * dt;
+    }
+  }
+
+  // camera follow
+  cameraX = spaceship.x - 250;
+
+  // regenerate planets if needed
+  const last = planets[planets.length - 1];
+  if (last.x < spaceship.x + canvas.width * 1.5) {
+    planets.push(generatePlanet(last.x));
+  }
+
+  // timer
+  elapsedTime = Math.floor((performance.now() - startTime) / 1000);
+  document.getElementById("timerDisplay").textContent = `time: ${elapsedTime}s`;
+  document.getElementById("livesDisplay").textContent = `lives: ${lives}`;
+
+  // collision
+  for (let p of planets) {
+    const dist = Math.hypot(spaceship.x - p.x, spaceship.y - p.y);
+    if (dist < p.size + spaceship.size) {
+      lives--;
+      if (lives <= 0) {
+        lives = 3;
+        generateField();
+      }
+      resetPlayer();
+      startTime = performance.now();
       return;
     }
   }
 }
 
-/* camera */
-let camX = 0, camY = 0, zoom = 1;
-
-/* screen shake */
-let shake = 0;
-function doShake() { shake = 12; }
-
-/* draw ship */
-function drawShip() {
-  ctx.save();
-  ctx.translate(ship.x, ship.y);
-  ctx.rotate(ship.angle);
-
-  ctx.beginPath();
-  ctx.moveTo(ship.size, 0);
-  ctx.lineTo(-ship.size, 10);
-  ctx.lineTo(-ship.size, -10);
-  ctx.closePath();
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-/* draw particles */
-function drawParticles() {
-  ctx.fillStyle = "rgba(255,140,0,0.9)";
-  for (let p of particles) {
-    if (!p.active) continue;
-
+// draw planets
+function drawPlanets() {
+  for (let p of planets) {
+    const glow = ctx.createRadialGradient(p.x, p.y, p.size * 0.6, p.x, p.y, p.size * 2.1);
+    glow.addColorStop(0, p.color + "88");
+    glow.addColorStop(1, p.color + "00");
+    ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
   }
 }
 
-/* update game */
-function update(dt) {
-  if (keys["a"]) ship.angle -= 0.05;
-  if (keys["d"]) ship.angle += 0.05;
+// draw spaceship
+function drawShip() {
+  ctx.save();
+  ctx.translate(spaceship.x, spaceship.y);
+  ctx.rotate(spaceship.angle);
+
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.moveTo(spaceship.size, 0);
+  ctx.lineTo(-spaceship.size, spaceship.size * 0.65);
+  ctx.lineTo(-spaceship.size, -spaceship.size * 0.65);
+  ctx.closePath();
+  ctx.fill();
 
   if (keys["w"]) {
-    ship.vx += Math.cos(ship.angle) * 0.18;
-    ship.vy += Math.sin(ship.angle) * 0.18;
-
-    spawnParticle();
-    zoom = 1.03;
-  } else {
-    zoom += (1 - zoom) * 0.1;
-  }
-
-  ship.x += ship.vx;
-  ship.y += ship.vy;
-
-  // screen bounce
-  if (ship.x < -W/2) { ship.x = -W/2; ship.vx *= -0.6; doShake(); }
-  if (ship.x >  W/2) { ship.x =  W/2; ship.vx *= -0.6; doShake(); }
-  if (ship.y < -H/2) { ship.y = -H/2; ship.vy *= -0.6; doShake(); }
-  if (ship.y >  H/2) { ship.y =  H/2; ship.vy *= -0.6; doShake(); }
-
-  // particles
-  for (let p of particles) {
-    if (!p.active) continue;
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life--;
-    if (p.life <= 0) p.active = false;
-  }
-
-  // shake falloff
-  shake *= 0.85;
-}
-
-/* render loop */
-let last = 0;
-function loop(t) {
-  if (!running) return;
-  requestAnimationFrame(loop);
-
-  const dt = (t - last) / 16;
-  last = t;
-
-  if (!paused) {
-    time += dt * 0.016;
-    update(dt);
-  }
-
-  // camera follows ship
-  camX += ((ship.x - W / 2) - camX) * 0.06;
-  camY += ((ship.y - H / 2) - camY) * 0.06;
-
-  ctx.setTransform(zoom, 0, 0, zoom, -camX + shake, -camY + shake);
-  ctx.clearRect(camX - 2000, camY - 2000, 4000, 4000);
-
-  // planets
-  ctx.strokeStyle = "white";
-  for (let p of planets) {
+    ctx.fillStyle = "#ff9566";
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.moveTo(-spaceship.size, 0);
+    ctx.lineTo(-spaceship.size - 10, 6);
+    ctx.lineTo(-spaceship.size - 10, -6);
+    ctx.closePath();
+    ctx.fill();
   }
 
-  drawParticles();
+  ctx.restore();
+}
+
+// draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(-cameraX, 0);
+  drawPlanets();
   drawShip();
-
-  document.getElementById("timer").textContent = `Time: ${time.toFixed(1)}`;
+  ctx.restore();
 }
 
-/* control handlers */
+// main loop
+function loop(t) {
+  if (!gameStarted) return;
+  let dt = t - lastTime;
+  lastTime = t;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// start screen logic
 document.getElementById("startBtn").onclick = () => {
-  document.getElementById("startScreen").classList.add("hidden");
-  document.getElementById("hud").classList.remove("hidden");
-
-  resetGame();
+  document.getElementById("startOverlay").classList.add("hidden");
+  gameStarted = true;
+  startTime = performance.now();
+  lastTime = startTime;
+  generateField();
+  resetPlayer();
+  loop();
 };
 
-document.getElementById("restartBtn").onclick = resetGame;
-
-document.getElementById("infoBtn").onclick = () => {
-  document.getElementById("infoModal").classList.remove("hidden");
+// info buttons
+document.getElementById("infoBtnStart").onclick = () => {
+  document.getElementById("infoOverlay").classList.remove("hidden");
 };
 
-document.getElementById("closeInfo").onclick = () => {
-  document.getElementById("infoModal").classList.add("hidden");
+document.getElementById("infoBtnGame").onclick = () => {
+  document.getElementById("infoOverlay").classList.remove("hidden");
 };
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === " ") paused = !paused;
-});
+document.getElementById("closeInfoBtn").onclick = () => {
+  document.getElementById("infoOverlay").classList.add("hidden");
+};
 
-/* reset game */
-function resetGame() {
-  ship.x = 0;
-  ship.y = 0;
-  ship.vx = 0;
-  ship.vy = 0;
-  ship.angle = 0;
-
-  time = 0;
-  lives = 3;
-
-  generatePlanets();
-  running = true;
-  paused = false;
-  loop(0);
-}
+// reset button
+document.getElementById("resetBtn").onclick = () => {
+  resetPlayer();
+  startTime = performance.now();
+};
