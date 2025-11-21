@@ -1,110 +1,111 @@
-/* base styling */
-body, html {
+/* global */
+html, body {
   margin: 0;
   padding: 0;
-  background: #000;
-  font-family: "Figtree", sans-serif;
   overflow: hidden;
-  color: #fff;
+  font-family: 'Figtree', sans-serif;
+  background: #0b0c1a;
+  color: #ffffff;
 }
 
-/* overlay containers */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.overlay.hidden {
-  display: none;
-}
-
-/* overlay box */
-.overlayBox {
-  background: rgba(20, 20, 20, 0.85);
-  padding: 30px 40px;
-  border-radius: 14px;
-  border: 1px solid #4c5aff;
-  box-shadow: 0 0 25px #4c5aff50;
-  text-align: center;
-}
-
-.overlayBox h1,
-.overlayBox h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-weight: 700;
-}
-
-.instructionsTitle {
-  margin-top: 10px;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.instructionsText {
-  opacity: 0.8;
-  font-size: 0.95rem;
-  margin-bottom: 20px;
+canvas {
+  display: block;
 }
 
 /* buttons */
-.ui-btn {
-  background: #4c5aff;
-  color: #fff;
+button {
+  font-family: 'Figtree', sans-serif;
+  font-size: 16px;
+  padding: 10px 22px;
   border: none;
-  padding: 10px 26px;
-  margin-top: 10px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: "Figtree", sans-serif;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.18s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
-.ui-btn:hover {
+button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 15px #4c5aff80;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.5);
 }
 
-/* ghost button */
-.ui-btn.ghost {
-  background: transparent;
-  border: 1px solid #4c5aff;
+.main-btn {
+  background: linear-gradient(135deg, #6b5bff, #4fc3f7);
+  color: #fff;
 }
 
-/* small buttons */
-.ui-btn.small {
-  padding: 5px 15px;
-  font-size: 0.8rem;
+.hud-btn {
+  background: linear-gradient(135deg, #ff6fbf, #ff8c6f);
+  color: #fff;
 }
 
-/* hud */
+/* overlay panels */
+#overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(11,12,26,0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 10;
+}
+
+#overlay h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+#overlay p {
+  font-size: 18px;
+  margin-bottom: 16px;
+  max-width: 400px;
+}
+
+.overlay-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* HUD panel */
 #hud {
-  position: fixed;
-  top: 20px;
-  left: 20px;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  pointer-events: none;
   z-index: 5;
 }
 
-#timerDisplay, 
-#livesDisplay, 
-#controlHelp {
-  font-size: 1rem;
-  margin-bottom: 8px;
+#hud div {
+  pointer-events: auto;
 }
 
-#controlHelp {
-  opacity: 0.8;
-  font-size: 0.9rem;
+.hud-box {
+  background: #111226;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin: 12px;
+  display: inline-block;
+  font-size: 16px;
 }
 
-/* buttons in hud */
-#infoBtnGame {
-  margin-right: 6px;
+#hudButtons {
+  position: absolute;
+  right: 20px; top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#controlsDisplay {
+  position: absolute;
+  left: 20px; bottom: 20px;
+  font-size: 16px;
+  line-height: 1.6;
+  background: #111226;
+  padding: 8px 12px;
+  border-radius: 12px;
 }
