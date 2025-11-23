@@ -95,12 +95,20 @@ body {
 .hud span { font-size:18px; font-weight:500; }
 
 /* info & pause buttons */
-#infoBtnGame, #pauseBtn {
-  position:absolute;
-  bottom:22px;
-  right:22px;
-  z-index:15;
+#infoBtnGame {
+  position: absolute;
+  bottom: 22px;
+  right: 22px;
+  z-index: 15;
 }
+
+#pauseBtn {
+  position: absolute;
+  bottom: 80px;
+  right: 22px;
+  z-index: 15;
+}
+
 
 /* reset button (inside hud) */
 #resetBtn { width:120px; }
