@@ -1,56 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- start overlay -->
-  <div id="startOverlay" class="overlay">
-    <div class="overlayBox">
-      <h1>orbit</h1>
-      <p>
-        a space-navigation game.<br>
-        avoid planets, survive gravity wells,<br>
-        and go as far as you can.
-      </p>
-      <button id="startBtn" class="ui-btn">start</button>
-      <button id="infoBtnStart" class="ui-btn ghost">info</button>
-    </div>
-  </div>
+<canvas id="game"></canvas>
 
-  <!-- info modal -->
-  <div id="infoOverlay" class="overlay hidden">
-    <div class="overlayBox">
-      <h2>controls</h2>
-      <p class="instructionsText">
-        w - thrust<br>
-        a / d - rotate<br>
-        s - reverse thrust<br><br>
-        avoid planets, survive gravity wells, reach checkpoints
-      </p>
-      <button id="closeInfoBtn" class="ui-btn">close</button>
-    </div>
+<!-- start overlay -->
+<div id="startOverlay" class="overlay">
+  <div class="start-box">
+    <h1>orbit</h1>
+    <p>navigate your spaceship through planets! avoid collisions and reach checkpoints to survive.</p>
+    <button id="startBtn" class="btn">start</button>
   </div>
+</div>
 
-  <!-- ui during game -->
-  <div id="hud">
-    <div id="timerDisplay">time: 0s</div>
-    <div id="livesDisplay">lives: 3</div>
-    <div id="controlHelp">
-      w: thrust<br>
-      a/d: rotate<br>
-      s: reverse
-    </div>
-    <button id="infoBtnGame" class="ui-btn small">info</button>
-    <button id="resetBtn" class="ui-btn small">reset</button>
+<!-- info overlay -->
+<div id="infoOverlay" class="overlay hidden">
+  <div class="info-box">
+    <h2>controls & instructions</h2>
+    <p><strong>w / ↑</strong> - thrust forward</p>
+    <p><strong>s / ↓</strong> - brake / slow down</p>
+    <p><strong>a / ←</strong> - rotate left</p>
+    <p><strong>d / →</strong> - rotate right</p>
+    <p>pass planets to set checkpoints. colliding respawns you at last checkpoint.</p>
+    <button id="closeInfoBtn" class="btn">close</button>
   </div>
+</div>
 
-  <canvas id="game"></canvas>
-  <script src="script.js"></script>
+<!-- game hud -->
+<div class="hud">
+  <span id="livesDisplay">lives: 3</span>
+  <span id="timerDisplay">time: 0s</span>
+  <button id="infoBtnGame" class="btn">info</button>
+  <button id="resetBtn" class="btn">restart</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
