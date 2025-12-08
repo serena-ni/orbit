@@ -11,7 +11,7 @@
 
 ## Features
 
-- Dynamic planets with glowing atmospheres  
+- Dynamic planets  
 - Lives system (3 lives per game)  
 - Timer to track survival  
 - Thrust flame animation and collision particles  
