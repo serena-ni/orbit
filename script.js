@@ -166,7 +166,7 @@ function update(dt) {
       // death overlay
       const msg = deathMessages[Math.floor(Math.random() * deathMessages.length)];
       document.getElementById("deathMessage").textContent = msg;
-      document.getElementById("finalTime").textContent = `final survived: ${elapsedTime}s`;
+      document.getElementById("finalTime").textContent = `time survived: ${elapsedTime}s`;
       document.getElementById("deathOverlay").classList.remove("hidden");
 
       shakeTime = 160;
