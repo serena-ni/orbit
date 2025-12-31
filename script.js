@@ -15,8 +15,12 @@ let keys = {};
 let lastTime = 0;
 let gameStarted = false;
 let paused = false;
-let alive = false;
+let alive = true;
 let startTime = 0;
+
+// score + style
+let score = 0;
+let multiplier = 1.0;
 
 // gravity
 const gravityStrength = 0.00027;
@@ -27,9 +31,8 @@ const planetSize = { min: 40, max: 120 };
 const palette = ["#6fa8ff", "#6b5bff", "#4fc3f7", "#8ca5ff", "#5f7bff", "#7fb4ff"];
 let planets = [];
 
-// stars
-let stars = [];
-const maxStars = 100;
+// orbit tracking (per planet)
+const orbitData = new Map();
 
 // screen shake
 let shakeTime = 0;
@@ -44,37 +47,32 @@ const deathMessages = [
   "space is unforgiving.",
   "that planet looked friendly.",
   "note to self: brake earlier.",
-  "crash course in physics.",
   "hull integrity compromised.",
-  "maybe orbit a bit slower.",
   "trajectory miscalculated.",
-  "you underestimated the pull.",
-  "thrusters offline for now.",
-  "collision inevitable.",
-  "oops, wrong orbit.",
-  "mission control is disappointed.",
-  "attempt ended abruptly.",
-  "space refuses your entry.",
+  "physics does not negotiate.",
   "momentum betrayed you.",
-  "your hull screams in pain.",
-  "unexpected encounter with a planet.",
-  "physics beats pilot again.",
-  "the void claims another.",
-  "check your calculations next time.",
-  "asteroid field says hi."
+  "collision inevitable.",
+  "you flew too close.",
+  "orbital decay complete.",
+  "space pushes back."
 ];
-
 
 // input
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// random color
+// helpers
 function randomColor() {
   return palette[Math.floor(Math.random() * palette.length)];
 }
 
-// generate planet
+function normalizeAngle(a) {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+// planet generation
 function generatePlanet(lastX) {
   const x = lastX + planetSpacing.min + Math.random() * (planetSpacing.max - planetSpacing.min);
   const y = 100 + Math.random() * (canvas.height - 200);
@@ -82,127 +80,142 @@ function generatePlanet(lastX) {
   return { x, y, size, color: randomColor() };
 }
 
-// generate field
 function generateField() {
   planets = [];
+  orbitData.clear();
   let x = 600;
   for (let i = 0; i < 12; i++) {
     const p = generatePlanet(x);
     x = p.x;
     planets.push(p);
-  }
-}
-
-// generate stars
-function generateStars() {
-  stars = [];
-  for (let i = 0; i < maxStars; i++) {
-    stars.push({
-      x: Math.random() * canvas.width * 2,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2,
-      speed: Math.random() * 0.1 + 0.02
+    orbitData.set(p, {
+      active: false,
+      orbitAngle: 0,
+      lastAngle: null,
+      completed: false
     });
   }
 }
 
 // reset player
 function resetPlayer() {
-  if (planets.length === 0) generateField();
-  spaceship.x = planets[0].x - 250;
-  spaceship.y = planets[0].y;
+  const p = planets[0];
+  spaceship.x = p.x - 250;
+  spaceship.y = p.y;
   spaceship.speed = 0;
   spaceship.angle = 0;
-  cameraX = spaceship.x - canvas.width / 2 + 250;
+  cameraX = spaceship.x - canvas.width / 2;
   cameraY = spaceship.y - canvas.height / 2;
   alive = true;
+  paused = false;
 }
 
-// update physics
+// update
 function update(dt) {
   if (paused || !alive) return;
 
+  // thrust
   if (keys["w"] || keys["arrowup"]) spaceship.speed += 0.0007 * dt;
   if (keys["s"] || keys["arrowdown"]) spaceship.speed -= 0.0004 * dt;
+
+  // rotate
   if (keys["a"] || keys["arrowleft"]) spaceship.angle -= 0.004 * dt;
   if (keys["d"] || keys["arrowright"]) spaceship.angle += 0.004 * dt;
 
+  // move
   spaceship.x += Math.cos(spaceship.angle) * spaceship.speed * dt;
   spaceship.y += Math.sin(spaceship.angle) * spaceship.speed * dt;
+
+  // gravity + orbit detection
+  let nearestPlanet = null;
+  let nearestDist = Infinity;
 
   for (let p of planets) {
     const dx = p.x - spaceship.x;
     const dy = p.y - spaceship.y;
     const dist = Math.hypot(dx, dy);
+
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearestPlanet = p;
+    }
+
+    // gravity
     if (dist < p.size * 5) {
       const force = gravityStrength * (p.size * 2) / dist;
       spaceship.x += dx * force * dt;
       spaceship.y += dy * force * dt;
     }
+
+    // orbit logic
+    const data = orbitData.get(p);
+    if (dist < p.size * 4) {
+      const angle = Math.atan2(spaceship.y - p.y, spaceship.x - p.x);
+      if (data.lastAngle !== null) {
+        const delta = normalizeAngle(angle - data.lastAngle);
+        data.orbitAngle += Math.abs(delta);
+      }
+      data.lastAngle = angle;
+      data.active = true;
+
+      if (!data.completed && data.orbitAngle >= Math.PI * 2 * 0.9) {
+        data.completed = true;
+        score += Math.floor(100 * multiplier);
+        multiplier = Math.min(multiplier + 0.3, 3.0);
+      }
+    } else {
+      data.lastAngle = null;
+    }
   }
 
+  // soft camera lock toward planets
+  if (nearestPlanet && nearestDist > 650) {
+    const dx = nearestPlanet.x - spaceship.x;
+    const dy = nearestPlanet.y - spaceship.y;
+    spaceship.x += dx * 0.00015 * dt;
+    spaceship.y += dy * 0.00015 * dt;
+    multiplier = 1.0;
+  }
+
+  // camera follow
   cameraX += (spaceship.x - cameraX - canvas.width / 2) * 0.05;
   cameraY += (spaceship.y - cameraY - canvas.height / 2) * 0.05;
 
-  if (shakeTime > 0 && alive) {
-    shakeTime -= dt;
-    shakeStrength *= 0.9;
-  }
-
-  const last = planets[planets.length - 1];
-  if (last.x < spaceship.x + canvas.width * 1.5) planets.push(generatePlanet(last.x));
-
+  // collision
   for (let p of planets) {
     const dist = Math.hypot(spaceship.x - p.x, spaceship.y - p.y);
-    if (dist < spaceship.size + p.size && alive) {
-      lives--;
-      spaceship.speed = 0;
+    if (dist < p.size + spaceship.size && alive) { // trigger once
       alive = false;
+      paused = true;
+      spaceship.speed = 0;
       shakeTime = 0;
-      shakeStrength = 0;
 
-      document.getElementById("deathMessage").textContent = deathMessages[Math.floor(Math.random() * deathMessages.length)];
-      document.getElementById("finalTimeDisplay").textContent = `you survived ${elapsedTime}s`;
-      document.getElementById("deathOverlay").classList.remove("hidden");
+      const deathOverlay = document.getElementById("deathOverlay");
+      const deathMessage = document.getElementById("deathMessage");
+      const finalTimeDisplay = document.getElementById("finalTimeDisplay");
 
-      if (lives <= 0) {
-        lives = 3;
-        generateField();
-      }
+      deathMessage.textContent = deathMessages[Math.floor(Math.random() * deathMessages.length)];
+      finalTimeDisplay.textContent = `survived: ${elapsedTime}s | score: ${score} x${multiplier.toFixed(1)}`;
+      deathOverlay.classList.remove("hidden");
+
+      multiplier = 1.0;
 
       return;
     }
   }
 
+  // timer
   elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-  document.getElementById("timerDisplay").textContent = `survived: ${elapsedTime}s`;
-  document.getElementById("livesDisplay").textContent = `hull: ${"♥".repeat(lives)}`;
+  document.getElementById("timerDisplay").textContent =
+    `survived: ${elapsedTime}s | score: ${score} x${multiplier.toFixed(1)}`;
 
+  // reactive ui
   document.body.classList.toggle("thrusting", keys["w"] || keys["arrowup"]);
 }
 
-// draw
-function drawStars() {
-  for (let s of stars) {
-    ctx.fillStyle = "#ffffff33";
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-    ctx.fill();
-    s.x -= s.speed;
-    if (s.x < cameraX - 50) s.x = cameraX + canvas.width + 50;
-  }
-}
-
+// drawing
 function drawPlanets() {
   for (let p of planets) {
-    const glow = ctx.createRadialGradient(p.x, p.y, p.size * 0.6, p.x, p.y, p.size * 2.1);
-    glow.addColorStop(0, p.color + "88");
-    glow.addColorStop(1, p.color + "00");
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
-    ctx.fill();
-
     ctx.fillStyle = p.color;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -214,7 +227,6 @@ function drawShip() {
   ctx.save();
   ctx.translate(spaceship.x, spaceship.y);
   ctx.rotate(spaceship.angle);
-
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(spaceship.size, 0);
@@ -223,8 +235,8 @@ function drawShip() {
   ctx.closePath();
   ctx.fill();
 
-  // thrust flame (old style)
-  if (alive && (keys["w"] || keys["arrowup"])) {
+  // old flame trail
+  if (keys["w"] || keys["arrowup"]) {
     ctx.fillStyle = "#ff9566";
     ctx.beginPath();
     ctx.moveTo(-spaceship.size, 0);
@@ -233,23 +245,19 @@ function drawShip() {
     ctx.closePath();
     ctx.fill();
   }
-
   ctx.restore();
 }
 
 function draw() {
-  const shakeX = (shakeTime > 0 && alive) ? (Math.random() - 0.5) * shakeStrength : 0;
-  const shakeY = (shakeTime > 0 && alive) ? (Math.random() - 0.5) * shakeStrength : 0;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
-  drawStars();
+  ctx.translate(-cameraX, -cameraY);
   drawPlanets();
   drawShip();
   ctx.restore();
 }
 
+// main loop
 function loop(t) {
   if (!gameStarted) return;
   const dt = t - lastTime;
@@ -259,52 +267,61 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
-// buttons
+// start
 document.getElementById("startBtn").onclick = () => {
   document.getElementById("startOverlay").classList.add("hidden");
   gameStarted = true;
+  alive = true;
+  paused = false;
+  score = 0;
+  multiplier = 1.0;
   generateField();
-  generateStars();
   resetPlayer();
   startTime = performance.now();
   lastTime = startTime;
   loop(startTime);
 };
 
+// pause button
+const pauseBtn = document.getElementById("pauseBtn");
+const pauseOverlay = document.getElementById("pauseOverlay");
+
+pauseBtn.onclick = () => {
+  paused = !paused;
+  if (paused) savedSpeed = spaceship.speed;
+  else spaceship.speed = savedSpeed;
+  pauseOverlay.classList.toggle("hidden", !paused);
+};
+
+// spacebar pause/resume
+document.addEventListener("keydown", e => {
+  if (e.key === " " && gameStarted && alive) {
+    paused = !paused;
+    if (paused) savedSpeed = spaceship.speed;
+    else spaceship.speed = savedSpeed;
+    pauseOverlay.classList.toggle("hidden", !paused);
+  }
+});
+
+// info overlays
 document.getElementById("infoBtnStart").onclick = () => {
   document.getElementById("infoOverlay").classList.remove("hidden");
   paused = true;
-  savedSpeed = spaceship.speed;
-  spaceship.speed = 0;
 };
 
 document.getElementById("closeInfoBtn").onclick = () => {
   document.getElementById("infoOverlay").classList.add("hidden");
   paused = false;
-  spaceship.speed = savedSpeed;
 };
 
-const pauseBtn = document.getElementById("pauseBtn");
-const pauseOverlay = document.getElementById("pauseOverlay");
-
-pauseBtn.onclick = togglePause;
-document.addEventListener("keydown", e => { if (e.key === " ") togglePause(); });
-
-function togglePause() {
-  if (!alive) return;
-  paused = !paused;
-  if (paused) {
-    savedSpeed = spaceship.speed;
-    spaceship.speed = 0;
-  } else {
-    spaceship.speed = savedSpeed;
-  }
-  pauseOverlay.classList.toggle("hidden", !paused);
-}
-
+// death restart
 document.getElementById("deathRestartBtn").onclick = () => {
   document.getElementById("deathOverlay").classList.add("hidden");
+  alive = true;
+  paused = false;
+  score = 0;
+  multiplier = 1.0;
+  generateField();
   resetPlayer();
   startTime = performance.now();
-  lastTime = performance.now();
 };
