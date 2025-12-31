@@ -40,7 +40,7 @@ const deathMessages = [
   "that planet looked friendly.",
   "note to self: brake earlier.",
   "hull integrity compromised.",
-  "oops… wrong trajectory.",
+  "oops... wrong trajectory.",
   "space always collects its toll.",
   "maybe slow down next time.",
   "the stars are watching.",
@@ -52,17 +52,25 @@ const deathMessages = [
   "crash course in gravity.",
   "your ship disagrees.",
   "asteroid envy.",
-  "the cosmos has a sense of humor.",
   "planetary hug gone wrong.",
   "lost in the void again.",
   "trajectory miscalculated.",
-  "speed kills… literally.",
-  "someone should write a manual.",
-  "stellar disappointment.",
-  "your orbit is off.",
-  "space doesn’t forgive mistakes.",
-  "another lesson from physics."
+  "speed kills... literally.",
+  "orbital mechanics, 1 - you, 0.",
+  "that’s one small misstep for you.",
+  "gravity has plans.",
+  "the void calls.",
+  "not even close to escape velocity.",
+  "contact detected... with a planet.",
+  "orbit failed.",
+  "planetary welcome committee engaged.",
+  "too close for comfort.",
+  "crash landing imminent.",
+  "space doesn’t negotiate.",
+  "wrong vector.",
+  "better aim next time."
 ];
+
 
 // input
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
