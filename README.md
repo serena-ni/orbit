@@ -1,32 +1,25 @@
 # Orbit
 
-**Orbit** is a 2D space game where you pilot a spaceship through a dynamic planetary system. Avoid collisions, pass checkpoints, and survive as long as possible. 
+**Orbit** is a 2D space game where you pilot a spaceship through a dynamic planetary system. Avoid collisions, survive as long as possible, and enjoy the little details in space!
 
 ## Controls
 
 - **W / ↑**: Thrust forward  
-- **S / ↓**: Brake / slow down  
 - **A / ←**: Rotate left  
 - **D / →**: Rotate right  
-
-## Features
-
-- Dynamic planets  
-- Lives system (3 lives per game)  
-- Timer to track survival  
-- Thrust flame animation and collision particles  
-- Smooth camera follow and subtle screen shake  
+- **S / ↓**: Brake / slow down  
+- **Space/Pause button**: Pause / resume  
 
 ## How to Play
 
-1. Click **Start** to begin.  
+1. Click **launch** on the start screen to begin.  
 2. Navigate your spaceship using W/A/S/D or arrow keys.  
-3. Survive as long as possible without losing all lives.  
-4. Press **Reset** to respawn at your last checkpoint.  
-5. Click **Info** anytime to view instructions.
+3. Survive as long as possible without hitting planets.  
+4. If you crash, a death message will appear—click **Try Again** to restart.  
+5. Press **how to survive** on the start screen for instructions anytime.  
 
 ## Credits
-
-- Developed by Serena Ni.
-- Font: [Figtree](https://fonts.google.com/specimen/Figtree)  
+ 
+- Font: [Inter](https://fonts.google.com/specimen/Inter)  
 - Inspired by classic arcade space games
+- Built for [Hack Club Milkyway](https://milkyway.hackclub.com/)
