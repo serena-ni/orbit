@@ -38,50 +38,18 @@ const deathMessages = [
   "newton sends his regards.",
   "space is unforgiving.",
   "that planet looked friendly.",
-  "note to self: brake earlier.",
-  "hull integrity compromised.",
-  "oops... wrong trajectory.",
-  "space always collects its toll.",
-  "maybe slow down next time.",
-  "the stars are watching.",
-  "not your day to orbit.",
-  "collision detected, try again.",
-  "planets are not soft.",
-  "you underestimated the void.",
-  "thrusters offline.",
-  "crash course in gravity.",
-  "your ship disagrees.",
-  "asteroid envy.",
-  "planetary hug gone wrong.",
-  "lost in the void again.",
-  "trajectory miscalculated.",
-  "speed kills... literally.",
-  "orbital mechanics, 1 - you, 0.",
-  "that’s one small misstep for you.",
-  "gravity has plans.",
-  "the void calls.",
-  "not even close to escape velocity.",
-  "contact detected... with a planet.",
-  "orbit failed.",
-  "planetary welcome committee engaged.",
-  "too close for comfort.",
-  "crash landing imminent.",
-  "space doesn’t negotiate.",
-  "wrong vector.",
-  "better aim next time."
+  "note to self: brake earlier."
 ];
-
 
 // input
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// random color
+// generate planet
 function randomColor() {
   return palette[Math.floor(Math.random() * palette.length)];
 }
 
-// generate planet
 function generatePlanet(lastX) {
   const x = lastX + planetSpacing.min + Math.random() * (planetSpacing.max - planetSpacing.min);
   const y = 100 + Math.random() * (canvas.height - 200);
@@ -89,7 +57,6 @@ function generatePlanet(lastX) {
   return { x, y, size, color: randomColor() };
 }
 
-// generate field
 function generateField() {
   planets = [];
   let x = 600;
@@ -100,7 +67,6 @@ function generateField() {
   }
 }
 
-// reset player
 function resetPlayer() {
   if (planets.length === 0) generateField();
   spaceship.x = planets[0].x - 250;
@@ -109,6 +75,35 @@ function resetPlayer() {
   spaceship.angle = 0;
   cameraX = spaceship.x - canvas.width / 2 + 250;
   cameraY = spaceship.y - canvas.height / 2;
+}
+
+// pause toggle
+function togglePause() {
+  paused = !paused;
+  if (paused) {
+    savedSpeed = spaceship.speed;
+    spaceship.speed = 0;
+    document.getElementById("pauseOverlay").classList.remove("hidden");
+  } else {
+    spaceship.speed = savedSpeed;
+    document.getElementById("pauseOverlay").classList.add("hidden");
+  }
+}
+
+// start game
+function startGame() {
+  document.getElementById("startOverlay").classList.add("hidden");
+  document.getElementById("deathOverlay").classList.add("hidden");
+  document.getElementById("infoOverlay").classList.add("hidden");
+  lives = 3;
+  elapsedTime = 0;
+  generateField();
+  resetPlayer();
+  startTime = performance.now();
+  lastTime = startTime;
+  gameStarted = true;
+  paused = false;
+  loop(startTime);
 }
 
 // update physics
@@ -139,7 +134,7 @@ function update(dt) {
     }
   }
 
-  // smooth camera follow
+  // camera
   cameraX += (spaceship.x - cameraX - canvas.width / 2) * 0.05;
   cameraY += (spaceship.y - cameraY - canvas.height / 2) * 0.05;
 
@@ -151,9 +146,7 @@ function update(dt) {
 
   // generate new planets
   const last = planets[planets.length - 1];
-  if (last.x < spaceship.x + canvas.width * 1.5) {
-    planets.push(generatePlanet(last.x));
-  }
+  if (last.x < spaceship.x + canvas.width * 1.5) planets.push(generatePlanet(last.x));
 
   // collision
   for (let p of planets) {
@@ -161,17 +154,21 @@ function update(dt) {
     if (dist < p.size + spaceship.size) {
       lives--;
       spaceship.speed = 0;
-      paused = true;
-
-      // death overlay
-      const msg = deathMessages[Math.floor(Math.random() * deathMessages.length)];
-      document.getElementById("deathMessage").textContent = msg;
-      document.getElementById("finalTime").textContent = `time survived: ${elapsedTime}s`;
-      document.getElementById("deathOverlay").classList.remove("hidden");
-
       shakeTime = 160;
       shakeStrength = 8;
 
+      const msg = deathMessages[Math.floor(Math.random() * deathMessages.length)];
+      document.getElementById("deathMessage").textContent = msg;
+      document.getElementById("finalTime").textContent = `final survived: ${elapsedTime}s`;
+      document.getElementById("deathOverlay").classList.remove("hidden");
+
+      if (lives <= 0) {
+        lives = 3;
+        generateField();
+      }
+      resetPlayer();
+      startTime = performance.now();
+      paused = true; // stop movement
       return;
     }
   }
@@ -206,7 +203,7 @@ function drawPlanets() {
   }
 }
 
-// draw spaceship
+// draw ship
 function drawShip() {
   ctx.save();
   ctx.translate(spaceship.x, spaceship.y);
@@ -220,7 +217,6 @@ function drawShip() {
   ctx.closePath();
   ctx.fill();
 
-  // thrust flame
   if (keys["w"] || keys["arrowup"]) {
     ctx.fillStyle = "#ff9566";
     ctx.beginPath();
@@ -237,10 +233,8 @@ function drawShip() {
 // draw everything
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const shakeX = (!document.getElementById("deathOverlay").classList.contains("hidden") ? 0 : (shakeTime > 0 ? (Math.random() - 0.5) * shakeStrength : 0));
-  const shakeY = (!document.getElementById("deathOverlay").classList.contains("hidden") ? 0 : (shakeTime > 0 ? (Math.random() - 0.5) * shakeStrength : 0));
-
+  const shakeX = (shakeTime > 0) ? (Math.random() - 0.5) * shakeStrength : 0;
+  const shakeY = (shakeTime > 0) ? (Math.random() - 0.5) * shakeStrength : 0;
   ctx.save();
   ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
   drawPlanets();
@@ -258,51 +252,23 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
-// start screen buttons
-document.getElementById("startBtn").onclick = () => {
-  document.getElementById("startOverlay").classList.add("hidden");
-  gameStarted = true;
-  generateField();
-  resetPlayer();
-  startTime = performance.now();
-  lastTime = startTime;
-  loop(startTime);
-};
+// global keydown for space pause
+document.addEventListener("keydown", e => {
+  if (e.key === " ") togglePause();
+});
 
-document.getElementById("infoBtnStart").onclick = () => {
-  document.getElementById("infoOverlay").classList.remove("hidden");
-  paused = true;
-  spaceship.speed = 0;
-};
-
-// close info overlay
-document.getElementById("closeInfoBtn").onclick = () => {
-  document.getElementById("infoOverlay").classList.add("hidden");
-  paused = false;
-};
-
-// pause button + space
-const pauseOverlay = document.getElementById("pauseOverlay");
-const pauseBtn = document.getElementById("pauseBtn");
-function togglePause() {
-  if (document.getElementById("deathOverlay").classList.contains("hidden") && gameStarted) {
-    paused = !paused;
-    if (paused) {
-      savedSpeed = spaceship.speed;
-      spaceship.speed = 0;
-    } else {
-      spaceship.speed = savedSpeed;
-    }
-    pauseOverlay.classList.toggle("hidden", !paused);
-  }
-}
-pauseBtn.onclick = togglePause;
-document.addEventListener("keydown", e => { if (e.key === " ") togglePause(); });
-
-// death restart
-document.getElementById("deathRestartBtn").onclick = () => {
-  document.getElementById("deathOverlay").classList.add("hidden");
-  paused = false;
-  resetPlayer();
-  startTime = performance.now();
-};
+// dom ready for buttons
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("startBtn").onclick = startGame;
+  document.getElementById("infoBtnStart").onclick = () => {
+    document.getElementById("infoOverlay").classList.remove("hidden");
+    if (!paused) togglePause();
+  };
+  document.getElementById("closeInfoBtn").onclick = () => {
+    document.getElementById("infoOverlay").classList.add("hidden");
+    if (paused) togglePause();
+  };
+  document.getElementById("deathRestartBtn").onclick = startGame;
+  document.getElementById("resetBtn").onclick = startGame;
+  document.getElementById("pauseBtn").onclick = togglePause;
+});
