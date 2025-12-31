@@ -30,4 +30,4 @@
  
 - Font: [Inter](https://fonts.google.com/specimen/Inter)  
 - Inspired by classic arcade space games
-- Built for [Hack Club Milkyway](https://milkyway.hackclub.com/)
+- Built for [Hack Club Milkyway](https://milkyway.hackclub.com?from=stellar)
