@@ -1,57 +1,67 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orbit</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>orbit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<canvas id="game"></canvas>
-
-<!-- start overlay -->
-<div id="startOverlay" class="overlay">
-  <div class="start-box">
-    <h1>orbit</h1>
-    <button id="startBtn" class="btn">start</button>
-    <button id="infoBtnStart" class="btn">info</button>
+  <!-- hud -->
+  <div class="hud">
+    <div id="timerDisplay">survived: 0.0s</div>
+    <div id="livesDisplay">hull: ♥♥♥</div>
+    <button id="pauseBtn" class="btn small">pause</button>
   </div>
-</div>
 
-<!-- info overlay -->
-<div id="infoOverlay" class="overlay hidden">
-  <div class="info-box">
-    <h2>info</h2>
-    <p>W / S - thrust / brake</p>
-    <p>A / D - rotate</p>
-    <p>pause button to pause/resume</p>
-    <button id="closeInfoBtn" class="btn">close</button>
+  <canvas id="game"></canvas>
+
+  <!-- start overlay -->
+  <div id="startOverlay" class="overlay">
+    <div class="info-box">
+      <h1>orbit</h1>
+      <p class="subtitle">gravity is optional. control is not.</p>
+      <button id="startBtn" class="btn">launch</button>
+      <button id="infoBtnStart" class="btn ghost">how to survive</button>
+    </div>
   </div>
-</div>
 
-<!-- pause overlay -->
-<div id="pauseOverlay" class="overlay hidden">
-  <div class="info-box">
-    <h2>paused</h2>
-    <button id="resumeBtn" class="btn">resume</button>
+  <!-- pause overlay -->
+  <div id="pauseOverlay" class="overlay hidden">
+    <div class="info-box">
+      <h2>drifting...</h2>
+      <p>press space or the hud button to resume</p>
+    </div>
   </div>
-</div>
 
-<!-- HUD -->
-<div class="hud">
-  <span id="timerDisplay">time: 0s</span>
-  <span id="livesDisplay">lives: 3</span>
-  <button id="resetBtn" class="btn">restart</button>
-</div>
+  <!-- info overlay -->
+  <div id="infoOverlay" class="overlay hidden">
+    <div class="info-box">
+      <h2>how to survive</h2>
+      <p>w / up - thrust</p>
+      <p>a / left - rotate left</p>
+      <p>d / right - rotate right</p>
+      <p>space - pause</p>
+      <button id="closeInfoBtn" class="btn ghost">got it</button>
+    </div>
+  </div>
 
-<!-- top-left game buttons under HUD -->
-<div class="game-buttons">
-  <button id="pauseBtn" class="btn">pause</button>
-  <button id="infoBtnGame" class="btn">info</button>
-</div>
+  <!-- death overlay -->
+  <div id="deathOverlay" class="overlay hidden">
+    <div class="info-box">
+      <h2>mission failed</h2>
+      <p id="deathMessage"></p>
+      <p id="finalTime"></p>
+      <button id="deathRestartBtn" class="btn">try again</button>
+    </div>
+  </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

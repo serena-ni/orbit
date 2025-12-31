@@ -6,6 +6,7 @@ canvas.height = window.innerHeight;
 
 // player
 let spaceship = { x: 0, y: 0, size: 22, speed: 0, angle: 0 };
+let savedSpeed = 0;
 let lives = 3;
 let elapsedTime = 0;
 let cameraX = 0;
@@ -25,12 +26,29 @@ const planetSize = { min: 40, max: 120 };
 const palette = ["#6fa8ff", "#6b5bff", "#4fc3f7", "#8ca5ff", "#5f7bff", "#7fb4ff"];
 let planets = [];
 
+// screen shake
+let shakeTime = 0;
+let shakeStrength = 0;
+
+// death messages
+const deathMessages = [
+  "gravity wins again.",
+  "too fast. every time.",
+  "orbit, not speed.",
+  "newton sends his regards.",
+  "space is unforgiving.",
+  "that planet looked friendly.",
+  "note to self: brake earlier."
+];
+
 // input
 document.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
 // random color
-function randomColor() { return palette[Math.floor(Math.random() * palette.length)]; }
+function randomColor() {
+  return palette[Math.floor(Math.random() * palette.length)];
+}
 
 // generate planet
 function generatePlanet(lastX) {
@@ -53,8 +71,8 @@ function generateField() {
 
 // reset player
 function resetPlayer() {
-  if (planets.length === 0) generateField(); // ensure planets exist
-  spaceship.x = planets[0].x - 250; // start in front of first planet
+  if (planets.length === 0) generateField();
+  spaceship.x = planets[0].x - 250;
   spaceship.y = planets[0].y;
   spaceship.speed = 0;
   spaceship.angle = 0;
@@ -67,12 +85,12 @@ function update(dt) {
   if (paused) return;
 
   // thrust
-  if (keys["w"]) spaceship.speed += 0.0007 * dt;
-  if (keys["s"]) spaceship.speed -= 0.0004 * dt;
+  if (keys["w"] || keys["arrowup"]) spaceship.speed += 0.0007 * dt;
+  if (keys["s"] || keys["arrowdown"]) spaceship.speed -= 0.0004 * dt;
 
   // rotate
-  if (keys["a"]) spaceship.angle -= 0.004 * dt;
-  if (keys["d"]) spaceship.angle += 0.004 * dt;
+  if (keys["a"] || keys["arrowleft"]) spaceship.angle -= 0.004 * dt;
+  if (keys["d"] || keys["arrowright"]) spaceship.angle += 0.004 * dt;
 
   // move
   spaceship.x += Math.cos(spaceship.angle) * spaceship.speed * dt;
@@ -94,29 +112,49 @@ function update(dt) {
   cameraX += (spaceship.x - cameraX - canvas.width / 2) * 0.05;
   cameraY += (spaceship.y - cameraY - canvas.height / 2) * 0.05;
 
+  // screen shake decay
+  if (shakeTime > 0) {
+    shakeTime -= dt;
+    shakeStrength *= 0.9;
+  }
+
   // generate new planets
   const last = planets[planets.length - 1];
-  if (last.x < spaceship.x + canvas.width * 1.5) planets.push(generatePlanet(last.x));
+  if (last.x < spaceship.x + canvas.width * 1.5) {
+    planets.push(generatePlanet(last.x));
+  }
 
   // collision
   for (let p of planets) {
     const dist = Math.hypot(spaceship.x - p.x, spaceship.y - p.y);
     if (dist < p.size + spaceship.size) {
       lives--;
-      if (lives <= 0) {
-        lives = 3;
-        generateField();
-      }
-      resetPlayer();
-      startTime = performance.now();
+      spaceship.speed = 0;
+      paused = true;
+
+      // death overlay
+      const msg = deathMessages[Math.floor(Math.random() * deathMessages.length)];
+      document.getElementById("deathMessage").textContent = msg;
+      document.getElementById("finalTime").textContent = `final survived: ${elapsedTime}s`;
+      document.getElementById("deathOverlay").classList.remove("hidden");
+
+      shakeTime = 160;
+      shakeStrength = 8;
+
       return;
     }
   }
 
   // timer
-  elapsedTime = Math.floor((performance.now() - startTime) / 1000);
-  document.getElementById("timerDisplay").textContent = `time: ${elapsedTime}s`;
-  document.getElementById("livesDisplay").textContent = `lives: ${lives}`;
+  elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
+  document.getElementById("timerDisplay").textContent = `survived: ${elapsedTime}s`;
+  document.getElementById("livesDisplay").textContent = `hull: ${"♥".repeat(lives)}`;
+
+  // reactive ui
+  document.body.classList.toggle(
+    "thrusting",
+    keys["w"] || keys["arrowup"]
+  );
 }
 
 // draw planets
@@ -143,7 +181,7 @@ function drawShip() {
   ctx.translate(spaceship.x, spaceship.y);
   ctx.rotate(spaceship.angle);
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(spaceship.size, 0);
   ctx.lineTo(-spaceship.size, spaceship.size * 0.65);
@@ -152,7 +190,7 @@ function drawShip() {
   ctx.fill();
 
   // thrust flame
-  if (keys["w"]) {
+  if (keys["w"] || keys["arrowup"]) {
     ctx.fillStyle = "#ff9566";
     ctx.beginPath();
     ctx.moveTo(-spaceship.size, 0);
@@ -168,8 +206,12 @@ function drawShip() {
 // draw everything
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const shakeX = (!document.getElementById("deathOverlay").classList.contains("hidden") ? 0 : (shakeTime > 0 ? (Math.random() - 0.5) * shakeStrength : 0));
+  const shakeY = (!document.getElementById("deathOverlay").classList.contains("hidden") ? 0 : (shakeTime > 0 ? (Math.random() - 0.5) * shakeStrength : 0));
+
   ctx.save();
-  ctx.translate(-cameraX, -cameraY); // translate both axes
+  ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
   drawPlanets();
   drawShip();
   ctx.restore();
@@ -185,43 +227,51 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
-// start screen
+// start screen buttons
 document.getElementById("startBtn").onclick = () => {
   document.getElementById("startOverlay").classList.add("hidden");
   gameStarted = true;
-  generateField();      // generate planets first
-  resetPlayer();        // then reset ship
+  generateField();
+  resetPlayer();
   startTime = performance.now();
   lastTime = startTime;
   loop(startTime);
 };
 
-// pause/resume
-const pauseOverlay = document.getElementById("pauseOverlay");
-const pauseBtn = document.getElementById("pauseBtn");
-const resumeBtn = document.getElementById("resumeBtn");
-
-pauseBtn.onclick = () => {
-  paused = true;
-  pauseOverlay.classList.remove("hidden");
-};
-
-resumeBtn.onclick = () => {
-  paused = false;
-  pauseOverlay.classList.add("hidden");
-};
-
-// info overlays
-document.getElementById("infoBtnStart").onclick =
-document.getElementById("infoBtnGame").onclick = () => {
+document.getElementById("infoBtnStart").onclick = () => {
   document.getElementById("infoOverlay").classList.remove("hidden");
+  paused = true;
+  spaceship.speed = 0;
 };
+
+// close info overlay
 document.getElementById("closeInfoBtn").onclick = () => {
   document.getElementById("infoOverlay").classList.add("hidden");
+  paused = false;
 };
 
-// reset button
-document.getElementById("resetBtn").onclick = () => {
+// pause button + space
+const pauseOverlay = document.getElementById("pauseOverlay");
+const pauseBtn = document.getElementById("pauseBtn");
+function togglePause() {
+  if (document.getElementById("deathOverlay").classList.contains("hidden") && gameStarted) {
+    paused = !paused;
+    if (paused) {
+      savedSpeed = spaceship.speed;
+      spaceship.speed = 0;
+    } else {
+      spaceship.speed = savedSpeed;
+    }
+    pauseOverlay.classList.toggle("hidden", !paused);
+  }
+}
+pauseBtn.onclick = togglePause;
+document.addEventListener("keydown", e => { if (e.key === " ") togglePause(); });
+
+// death restart
+document.getElementById("deathRestartBtn").onclick = () => {
+  document.getElementById("deathOverlay").classList.add("hidden");
+  paused = false;
   resetPlayer();
   startTime = performance.now();
 };
