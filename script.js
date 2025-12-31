@@ -38,7 +38,30 @@ const deathMessages = [
   "newton sends his regards.",
   "space is unforgiving.",
   "that planet looked friendly.",
-  "note to self: brake earlier."
+  "note to self: brake earlier.",
+  "hull integrity compromised.",
+  "oops… wrong trajectory.",
+  "space always collects its toll.",
+  "maybe slow down next time.",
+  "the stars are watching.",
+  "not your day to orbit.",
+  "collision detected, try again.",
+  "planets are not soft.",
+  "you underestimated the void.",
+  "thrusters offline.",
+  "crash course in gravity.",
+  "your ship disagrees.",
+  "asteroid envy.",
+  "the cosmos has a sense of humor.",
+  "planetary hug gone wrong.",
+  "lost in the void again.",
+  "trajectory miscalculated.",
+  "speed kills… literally.",
+  "someone should write a manual.",
+  "stellar disappointment.",
+  "your orbit is off.",
+  "space doesn’t forgive mistakes.",
+  "another lesson from physics."
 ];
 
 // input
