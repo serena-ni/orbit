@@ -181,18 +181,41 @@ function checkAchievements() {
 /* death */
 const deathMessages = [
   "gravity wins again.",
-  "orbit is harder than it looks.",
-  "space does not forgive.",
-  "momentum betrayed you.",
-  "trajectory lost.",
-  "crash detected.",
+  "too fast. every time.",
+  "orbit, not speed.",
+  "newton sends his regards.",
+  "space is unforgiving.",
+  "that planet looked friendly.",
+  "note to self: brake earlier.",
+  "hull integrity compromised.",
+  "oops... wrong trajectory.",
+  "space always collects its toll.",
+  "maybe slow down next time.",
+  "the stars are watching.",
+  "not your day to orbit.",
+  "collision detected, try again.",
+  "planets are not soft.",
+  "you underestimated the void.",
+  "thrusters offline.",
+  "crash course in gravity.",
+  "your ship disagrees.",
+  "asteroid envy.",
+  "planetary hug gone wrong.",
+  "lost in the void again.",
+  "trajectory miscalculated.",
+  "speed kills... literally.",
+  "orbital mechanics, 1 - you, 0.",
+  "that’s one small misstep for you.",
+  "gravity has plans.",
+  "the void calls.",
+  "not even close to escape velocity.",
+  "contact detected... with a planet.",
+  "planetary welcome committee engaged.",
   "too close for comfort.",
-  "planet got you.",
-  "your path was doomed.",
-  "velocity mismatch.",
-  "orbit interrupted.",
-  "space chaos ensues.",
-  "collided with destiny."
+  "crash landing imminent.",
+  "space doesn’t negotiate.",
+  "wrong vector.",
+  "better aim next time."
 ];
 
 function die() {
@@ -253,7 +276,7 @@ function update(dt) {
   elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
   document.getElementById(
     "timerDisplay"
-  ).textContent = `survived ${elapsedTime}s • score ${score} x${multiplier.toFixed(1)}`;
+  ).textContent = `survived: ${elapsedTime}s • score: ${score} x${multiplier.toFixed(1)}`;
 }
 
 /* draw */
