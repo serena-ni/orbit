@@ -15,7 +15,7 @@
 <body>
   <!-- hud -->
   <div class="hud">
-    <div id="timerDisplay">survived: 0.0s | score: 0 x 1.0</div>
+    <div id="timerDisplay">survived: 0.0s</div>
     <div id="livesDisplay">hull: ♥♥♥</div>
     <button id="pauseBtn" class="btn small">pause</button>
   </div>
@@ -47,21 +47,30 @@
       <p>w / up - thrust</p>
       <p>a / left - rotate left</p>
       <p>d / right - rotate right</p>
-      <p>space / pause - pause</p>
-      <p>circle planets to earn trick points!</p>
+      <p>space - pause</p>
       <button id="closeInfoBtn" class="btn ghost">got it</button>
     </div>
   </div>
 
-  <!-- death overlay -->
-<div id="deathOverlay" class="overlay hidden">
-  <div class="info-box">
-    <h1>mission failed</h1>
-    <p id="deathMessage"></p>
-    <p id="finalTimeScore"></p>
-    <button id="deathRestartBtn" class="btn">try again</button>
+  <!-- end overlay -->
+  <div id="endOverlay" class="overlay hidden">
+    <div class="info-box" style="max-width: 500px;">
+      <h1>mission failed</h1>
+      <h2 id="deathMessage">gravity wins again</h2>
+      <p id="finalTimeDisplay">time survived: 0s | score: 0</p>
+      <button id="deathRestartBtn" class="btn">try again</button>
+      <button id="checkAchievementsBtn" class="btn ghost">check achievements</button>
+    </div>
   </div>
-</div>
+
+  <!-- achievements overlay -->
+  <div id="achievementsOverlay" class="overlay hidden">
+    <div class="info-box" style="max-width: 400px;">
+      <h2>achievements</h2>
+      <ul id="achievementsList" style="text-align: left; margin-top: 12px;"></ul>
+      <button id="closeAchievementsBtn" class="btn ghost">close</button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

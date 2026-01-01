@@ -1,12 +1,10 @@
-/* reset */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "inter", system-ui, -apple-system, sans-serif;
+  font-family: "inter", system-ui, sans-serif;
 }
 
-/* base */
 body {
   background: radial-gradient(circle at top, #0b1020, #05070f);
   color: #e6e8ef;
@@ -15,6 +13,7 @@ body {
 
 canvas {
   display: block;
+  pointer-events: none;
 }
 
 /* hud */
@@ -23,14 +22,20 @@ canvas {
   top: 16px;
   left: 16px;
   display: flex;
-  align-items: center; /* vertically center pause button */
-  gap: 24px;
+  align-items: center;
+  gap: 20px;
   padding: 14px 20px;
   border-radius: 16px;
   background: rgba(20, 24, 50, 0.6);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 16px;
+  font-size: 15px;
+  z-index: 5;
+}
+
+.hud button {
+  font-size: 12px;
+  padding: 6px 14px;
 }
 
 /* overlays */
@@ -39,52 +44,49 @@ canvas {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(5, 7, 15, 0.65);
+  background: rgba(5, 7, 15, 0.75);
   backdrop-filter: blur(6px);
+  z-index: 20;
 }
 
 .hidden {
   display: none;
 }
 
+/* base info box */
 .info-box {
-  background: rgba(15, 18, 40, 0.9);
-  padding: 30px 34px;
-  border-radius: 18px;
+  background: rgba(15, 18, 40, 0.95);
+  padding: 36px 42px;
+  border-radius: 20px;
   text-align: center;
-  max-width: 320px;
+  width: 460px;
+  max-width: calc(100vw - 40px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .info-box h1 {
   font-size: 36px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .info-box h2 {
   font-size: 22px;
   font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  font-size: 14px;
-  opacity: 0.75;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  opacity: 0.85;
 }
 
 .info-box p {
   font-size: 14px;
-  margin-bottom: 8px;
-  opacity: 0.85;
+  margin-bottom: 10px;
+  opacity: 0.75;
 }
 
 /* buttons */
 .btn {
-  font-family: inherit;
-  margin-top: 12px;
-  padding: 10px 18px;
+  margin-top: 16px;
+  padding: 10px 22px;
   font-size: 14px;
   font-weight: 500;
   border-radius: 999px;
@@ -92,17 +94,6 @@ canvas {
   background: #6fa8ff;
   color: #05070f;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn.small {
-  font-size: 12px;
-  padding: 6px 12px;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(111, 168, 255, 0.35);
 }
 
 .btn.ghost {
@@ -111,12 +102,67 @@ canvas {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* reactive ui */
-body.thrusting .hud {
-  box-shadow: 0 0 18px rgba(255, 160, 120, 0.35);
-  border-color: rgba(255, 160, 120, 0.4);
+/* =========================
+   achievements screen fix
+   ========================= */
+
+#achievementsOverlay .info-box {
+  text-align: left;
+  width: 420px;
+  max-height: 70vh;              /* critical */
+  display: flex;
+  flex-direction: column;
 }
 
-body.danger .hud {
-  box-shadow: 0 0 18px rgba(255, 80, 80, 0.35);
+/* scrollable list */
+#achievementsList {
+  list-style: none;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;              /* critical */
+  padding-right: 6px;
+  flex: 1;
+}
+
+/* scrollbar (optional aesthetic) */
+#achievementsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#achievementsList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+#achievementsList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.achievement-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.achievement-text strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.achievement-text span {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.achievement-status {
+  font-size: 12px;
+  opacity: 0.7;
+  white-space: nowrap;
 }
