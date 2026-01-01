@@ -18,7 +18,15 @@ let cameraY = 0;
 
 /* input */
 const keys = {};
-document.addEventListener("keydown", e => (keys[e.key.toLowerCase()] = true));
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+
+  // pause via space
+  if (e.key === " " && alive) {
+    paused = !paused;
+    showOverlay(paused ? pauseOverlay : null);
+  }
+});
 document.addEventListener("keyup", e => (keys[e.key.toLowerCase()] = false));
 
 /* player */
@@ -33,43 +41,80 @@ const ship = {
 /* score */
 let score = 0;
 let multiplier = 1;
-let orbitCount = 0;
+let orbitCounter = 0;
 
 /* planets */
+const gravity = 0.00025;
 const planets = [];
 const orbitData = new Map();
 
 /* achievements */
 const achievements = [
-  { name: "first orbit", description: "complete your first orbit around any planet", unlocked: false, check: () => orbitCount >= 1 },
-  { name: "planet hopper", description: "orbit 3 different planets", unlocked: false, check: () => orbitCount >= 3 },
-  { name: "survivor", description: "stay alive for at least 60 seconds", unlocked: false, check: () => elapsedTime >= 60 },
-  { name: "speedster", description: "reach maximum speed without dying", unlocked: false, check: () => ship.speed >= 0.8 },
-  { name: "close call", description: "come within 10px of a planet without colliding", unlocked: false, check: () => {
-    for (let p of planets) {
-      const dist = Math.hypot(ship.x - p.x, ship.y - p.y);
-      if (dist < p.size + 10 && dist > p.size) return true;
+  { 
+    name: "first orbit", 
+    description: "complete your first orbit around any planet", 
+    unlocked: false, 
+    check: () => orbitCounter >= 1 
+  },
+  { 
+    name: "planet hopper", 
+    description: "orbit 3 different planets", 
+    unlocked: false, 
+    check: () => orbitCounter >= 3 
+  },
+  { 
+    name: "survivor", 
+    description: "stay alive for at least 60 seconds", 
+    unlocked: false, 
+    check: () => elapsedTime >= 60
+  },
+  { 
+    name: "speedster", 
+    description: "reach maximum speed without dying", 
+    unlocked: false, 
+    check: () => ship.speed >= 0.8 
+  },
+  { 
+    name: "close call", 
+    description: "come within 10px of a planet without colliding", 
+    unlocked: false, 
+    check: () => {
+      for (let p of planets) {
+        const dist = Math.hypot(ship.x - p.x, ship.y - p.y);
+        if (dist < p.size + 10 && dist > p.size) return true;
+      }
+      return false;
     }
-    return false;
-  }},
-  { name: "multiplier master", description: "reach the maximum score multiplier", unlocked: false, check: () => multiplier >= 3 },
-  { name: "endurance orbit", description: "orbit a planet continuously for 60 seconds", unlocked: false, check: () => {
-    for (let [p, data] of orbitData) {
-      if (data.angleTime && data.angleTime >= 60000) return true; // 60s
+  },
+  { 
+    name: "multiplier master", 
+    description: "reach the maximum score multiplier", 
+    unlocked: false, 
+    check: () => multiplier >= 3 
+  },
+  { 
+    name: "endurance orbit", 
+    description: "orbit a planet continuously for 60 seconds", 
+    unlocked: false, 
+    check: () => {
+      for (let [p, data] of orbitData) {
+        if (data.angleTime && data.angleTime >= 60000) return true;
+      }
+      return false;
     }
-    return false;
-  }}
+  }
 ];
 
-/* ui */
+/* overlays */
 const startOverlay = document.getElementById("startOverlay");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const endOverlay = document.getElementById("endOverlay");
 const achievementsOverlay = document.getElementById("achievementsOverlay");
+const infoOverlay = document.getElementById("infoOverlay");
 
 /* helpers */
 function showOverlay(target) {
-  [startOverlay, pauseOverlay, endOverlay, achievementsOverlay].forEach(o =>
+  [startOverlay, pauseOverlay, endOverlay, achievementsOverlay, infoOverlay].forEach(o =>
     o.classList.add("hidden")
   );
   if (target) target.classList.remove("hidden");
@@ -85,7 +130,8 @@ function normalizeAngle(a) {
 function generatePlanets() {
   planets.length = 0;
   orbitData.clear();
-  orbitCount = 0;
+  orbitCounter = 0;
+
   let x = 600;
   for (let i = 0; i < 10; i++) {
     const p = {
@@ -95,7 +141,7 @@ function generatePlanets() {
       color: "#6fa8ff"
     };
     planets.push(p);
-    orbitData.set(p, { angle: 0, last: null, done: false, angleTime: 0 });
+    orbitData.set(p, { angle: 0, last: null, done: false });
     x += 600;
   }
 }
@@ -114,7 +160,7 @@ function resetPlayer() {
   paused = false;
 }
 
-/* achievements */
+/* achievement notification */
 function showAchievement(name) {
   const el = document.createElement("div");
   el.className = "achievement-popup show";
@@ -127,7 +173,7 @@ function checkAchievements() {
   achievements.forEach(a => {
     if (!a.unlocked && a.check()) {
       a.unlocked = true;
-      showAchievement(a.name);
+      showAchievement(a.name); // notification
     }
   });
 }
@@ -135,41 +181,18 @@ function checkAchievements() {
 /* death */
 const deathMessages = [
   "gravity wins again.",
-  "too fast. every time.",
-  "orbit, not speed.",
-  "newton sends his regards.",
-  "space is unforgiving.",
-  "that planet looked friendly.",
-  "note to self: brake earlier.",
-  "hull integrity compromised.",
-  "oops... wrong trajectory.",
-  "space always collects its toll.",
-  "maybe slow down next time.",
-  "the stars are watching.",
-  "not your day to orbit.",
-  "collision detected, try again.",
-  "planets are not soft.",
-  "you underestimated the void.",
-  "thrusters offline.",
-  "crash course in gravity.",
-  "your ship disagrees.",
-  "asteroid envy.",
-  "planetary hug gone wrong.",
-  "lost in the void again.",
-  "trajectory miscalculated.",
-  "speed kills... literally.",
-  "orbital mechanics, 1 - you, 0.",
-  "that’s one small misstep for you.",
-  "gravity has plans.",
-  "the void calls.",
-  "not even close to escape velocity.",
-  "contact detected... with a planet.",
-  "planetary welcome committee engaged.",
+  "orbit is harder than it looks.",
+  "space does not forgive.",
+  "momentum betrayed you.",
+  "trajectory lost.",
+  "crash detected.",
   "too close for comfort.",
-  "crash landing imminent.",
-  "space doesn’t negotiate.",
-  "wrong vector.",
-  "better aim next time."
+  "planet got you.",
+  "your path was doomed.",
+  "velocity mismatch.",
+  "orbit interrupted.",
+  "space chaos ensues.",
+  "collided with destiny."
 ];
 
 function die() {
@@ -202,24 +225,23 @@ function update(dt) {
     const dx = p.x - ship.x;
     const dy = p.y - ship.y;
     const dist = Math.hypot(dx, dy);
-    const data = orbitData.get(p);
 
     if (dist < p.size * 4) {
+      const data = orbitData.get(p);
       const ang = Math.atan2(ship.y - p.y, ship.x - p.x);
-      if (data.last !== null) data.angle += Math.abs(normalizeAngle(ang - data.last));
+      if (data.last !== null)
+        data.angle += Math.abs(normalizeAngle(ang - data.last));
       data.last = ang;
-      data.angleTime = (data.angleTime || 0) + dt;
 
       if (!data.done && data.angle >= Math.PI * 2 * 0.9) {
         data.done = true;
-        orbitCount++;
+        orbitCounter++;
         score += Math.floor(100 * multiplier);
         multiplier = Math.min(multiplier + 0.3, 3);
         checkAchievements();
       }
     } else {
-      data.last = null;
-      data.angleTime = 0;
+      orbitData.get(p).last = null;
     }
 
     if (dist < p.size + ship.size) die();
@@ -284,6 +306,7 @@ function loop(t) {
 }
 
 /* buttons */
+// start
 document.getElementById("startBtn").onclick = () => {
   showOverlay(null);
   gameStarted = true;
@@ -296,12 +319,14 @@ document.getElementById("startBtn").onclick = () => {
   requestAnimationFrame(loop);
 };
 
+// pause button
 document.getElementById("pauseBtn").onclick = () => {
   if (!alive) return;
   paused = !paused;
   showOverlay(paused ? pauseOverlay : null);
 };
 
+// restart after death
 document.getElementById("deathRestartBtn").onclick = () => {
   showOverlay(null);
   generatePlanets();
@@ -311,6 +336,7 @@ document.getElementById("deathRestartBtn").onclick = () => {
   startTime = performance.now();
 };
 
+// achievements button
 document.getElementById("checkAchievementsBtn").onclick = () => {
   const list = document.getElementById("achievementsList");
   list.innerHTML = "";
@@ -328,5 +354,10 @@ document.getElementById("checkAchievementsBtn").onclick = () => {
   showOverlay(achievementsOverlay);
 };
 
+// close achievements
 document.getElementById("closeAchievementsBtn").onclick = () =>
   showOverlay(endOverlay);
+
+// info overlay (how to survive)
+document.getElementById("infoBtnStart").onclick = () => showOverlay(infoOverlay);
+document.getElementById("closeInfoBtn").onclick = () => showOverlay(startOverlay);
