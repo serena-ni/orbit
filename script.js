@@ -228,7 +228,7 @@ function die() {
     deathMessages[Math.floor(Math.random() * deathMessages.length)];
 
   document.getElementById("finalTimeDisplay").textContent =
-    `time survived ${elapsedTime}s • score ${score}`;
+    `time survived: ${elapsedTime}s • score: ${score}`;
 
   showOverlay(endOverlay);
 }
