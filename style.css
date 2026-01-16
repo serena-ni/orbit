@@ -49,23 +49,18 @@ canvas {
   align-items: center;
 }
 
-/* pause button alignment fix */
 .hud button {
   display: flex;
   align-items: center;
   justify-content: center;
 
-  height: 28px;
+  height: 25px;
   line-height: 1;
 
   font-size: 12px;
   padding: 0 14px;
 
   border-radius: 999px;
-}
-
-.hud .lives:not(:first-of-type) {
-  display: none;
 }
 
 /* overlays (shared) */
@@ -166,7 +161,7 @@ canvas {
   flex-direction: column;
 }
 
-/* scrollable list */
+  /* scrollable list */
 #achievementsList {
   list-style: none;
   margin-top: 18px;

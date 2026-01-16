@@ -2,6 +2,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// resize
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -19,7 +20,6 @@ let elapsedTime = 0;
 
 // lives
 let lives = 3;
-let invulnTime = 0;
 
 // camera
 let cameraX = 0;
@@ -27,20 +27,16 @@ let cameraY = 0;
 
 // input
 const keys = {};
-
-// input
 document.addEventListener("keydown", e => {
   keys[e.key.toLowerCase()] = true;
 
+  // pause via space
   if (e.key === " " && alive && gameStarted) {
     paused = !paused;
     showOverlay(paused ? pauseOverlay : null);
   }
 });
-
-document.addEventListener("keyup", e => {
-  keys[e.key.toLowerCase()] = false;
-});
+document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
 // player
 const ship = {
@@ -48,8 +44,7 @@ const ship = {
   y: 0,
   angle: 0,
   speed: 0,
-  size: 22,
-  trail: []
+  size: 22
 };
 
 // score
@@ -71,7 +66,7 @@ const achievements = [
   },
   {
     name: "planet hopper",
-    description: "orbit 3 planets",
+    description: "orbit 3 different planets",
     unlocked: false,
     check: () => orbitCounter >= 3
   },
@@ -83,7 +78,7 @@ const achievements = [
   },
   {
     name: "multiplier master",
-    description: "reach x3 multiplier",
+    description: "reach max score multiplier",
     unlocked: false,
     check: () => multiplier >= 3
   },
@@ -120,7 +115,7 @@ function normalizeAngle(a) {
   return a;
 }
 
-// setup
+// setup planets
 function generatePlanets() {
   planets.length = 0;
   orbitData.clear();
@@ -135,60 +130,40 @@ function generatePlanets() {
       color: "#6fa8ff"
     };
     planets.push(p);
-    orbitData.set(p, {
-      angle: 0,
-      last: null,
-      done: false,
-      time: 0
-    });
+    orbitData.set(p, { angle: 0, last: null, done: false, time: 0 });
     x += 600;
   }
 }
 
+// reset player
 function resetPlayer(spawnPlanet = planets[0]) {
   ship.x = spawnPlanet.x - spawnPlanet.size - 80;
   ship.y = spawnPlanet.y;
   ship.angle = 0;
   ship.speed = 0;
-  ship.trail.length = 0;
 
   cameraX = ship.x - canvas.width / 2;
   cameraY = ship.y - canvas.height / 2;
 
   alive = true;
   paused = false;
-  invulnTime = 1000; // brief grace, but NOT transparent forever
 }
 
-// achievement UI
+// achievements
 function showAchievement(name) {
   const el = document.createElement("div");
-  el.style.position = "fixed";
-  el.style.top = "18px";
-  el.style.right = "18px";
-  el.style.padding = "10px 16px";
-  el.style.background = "rgba(20,24,50,0.75)";
-  el.style.border = "1px solid rgba(255,255,255,0.1)";
-  el.style.borderRadius = "12px";
-  el.style.backdropFilter = "blur(8px)";
-  el.style.fontSize = "13px";
-  el.style.opacity = "0";
-  el.style.transition = "0.3s";
-  el.textContent = `achievement unlocked — ${name}`;
-
+  el.className = "achievement-popup";
+  el.textContent = `achievement unlocked - ${name}`;
   document.body.appendChild(el);
 
-  requestAnimationFrame(() => (el.style.opacity = "1"));
-  setTimeout(() => {
-    el.style.opacity = "0";
-    setTimeout(() => el.remove(), 300);
-  }, 2200);
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => el.remove(), 2400);
 }
 
 function updateAchievementProgress() {
   const unlocked = achievements.filter(a => a.unlocked).length;
-  document.getElementById("achievementsProgressBar").style.width =
-    `${(unlocked / achievements.length) * 100}%`;
+  const bar = document.getElementById("achievementsProgressBar");
+  if (bar) bar.style.width = `${(unlocked / achievements.length) * 100}%`;
 }
 
 function checkAchievements() {
@@ -204,20 +179,53 @@ function checkAchievements() {
 // death
 const deathMessages = [
   "gravity wins again.",
-  "orbit, not speed.",
+  "too fast. every time.",
   "newton sends his regards.",
   "space is unforgiving.",
+  "that planet looked friendly.",
+  "note to self: brake earlier.",
+  "hull integrity compromised.",
+  "oops... wrong trajectory.",
+  "space always collects its toll.",
+  "maybe slow down next time.",
+  "the stars are watching.",
+  "not your day to orbit.",
+  "collision detected, try again.",
+  "planets are not soft.",
+  "you underestimated the void.",
+  "thrusters offline.",
+  "crash course in gravity.",
+  "your ship disagrees.",
+  "asteroid envy.",
+  "planetary hug gone wrong.",
+  "lost in the void again.",
+  "trajectory miscalculated.",
+  "speed kills... literally.",
+  "orbital mechanics, 1 - you, 0.",
+  "that’s one small misstep for you.",
+  "gravity has plans.",
+  "the void calls.",
+  "not even close to escape velocity.",
+  "contact detected... with a planet.",
+  "planetary welcome committee engaged.",
+  "too close for comfort.",
+  "crash landing imminent.",
+  "space doesn’t negotiate.",
   "wrong vector.",
-  "planetary hug gone wrong."
+  "better aim next time."
 ];
 
 function die() {
-  if (invulnTime > 0) return;
+  if (!alive) return;
 
   lives--;
 
   if (lives > 0) {
-    resetPlayer(planets[0]);
+    const nearest = planets.reduce((a, b) =>
+      Math.hypot(ship.x - a.x, ship.y - a.y) <
+      Math.hypot(ship.x - b.x, ship.y - b.y) ? a : b
+    );
+    resetPlayer(nearest);
     return;
   }
 
@@ -237,8 +245,7 @@ function die() {
 function update(dt) {
   if (!alive || paused) return;
 
-  if (invulnTime > 0) invulnTime -= dt;
-
+  // control ship
   if (keys["w"]) ship.speed += 0.0007 * dt;
   if (keys["a"]) ship.angle -= 0.004 * dt;
   if (keys["d"]) ship.angle += 0.004 * dt;
@@ -246,9 +253,12 @@ function update(dt) {
   ship.x += Math.cos(ship.angle) * ship.speed * dt;
   ship.y += Math.sin(ship.angle) * ship.speed * dt;
 
-  ship.trail.push({ x: ship.x, y: ship.y, life: 20 });
-  if (ship.trail.length > 30) ship.trail.shift();
+  // only count time if moving
+  if (ship.speed > 0) {
+    elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
+  }
 
+  // orbit detection
   planets.forEach(p => {
     const dx = p.x - ship.x;
     const dy = p.y - ship.y;
@@ -283,10 +293,11 @@ function update(dt) {
   cameraX += (ship.x - cameraX - canvas.width / 2) * 0.06;
   cameraY += (ship.y - cameraY - canvas.height / 2) * 0.06;
 
-  elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-
+  // hud hearts
+  const full = "♥".repeat(lives);
+  const empty = "♡".repeat(3 - lives);
   document.getElementById("timerDisplay").textContent =
-    `hull: ${"♥".repeat(lives)} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
+    `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
 }
 
 // draw
@@ -296,6 +307,7 @@ function draw() {
   ctx.save();
   ctx.translate(-cameraX, -cameraY);
 
+  // planets
   planets.forEach(p => {
     ctx.fillStyle = p.color;
     ctx.beginPath();
@@ -303,19 +315,12 @@ function draw() {
     ctx.fill();
   });
 
-  ship.trail.forEach(t => {
-    ctx.fillStyle = `rgba(255,255,255,${t.life / 40})`;
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, 2, 0, Math.PI * 2);
-    ctx.fill();
-    t.life--;
-  });
-
+  // ship
   ctx.save();
   ctx.translate(ship.x, ship.y);
   ctx.rotate(ship.angle);
 
-  // ship
+  // draw ship
   ctx.fillStyle = "#fff";
   ctx.beginPath();
   ctx.moveTo(22, 0);
@@ -324,13 +329,13 @@ function draw() {
   ctx.closePath();
   ctx.fill();
 
-  // thrust flame (smol orange triangle)
+  // small orange thrust flame if pressing W
   if (keys["w"]) {
-    ctx.fillStyle = "#ff9f43";
+    ctx.fillStyle = "#ff9566";
     ctx.beginPath();
-    ctx.moveTo(-22, 0);
-    ctx.lineTo(-34, 6);
-    ctx.lineTo(-34, -6);
+    ctx.moveTo(-22, 6);
+    ctx.lineTo(-34, 0);
+    ctx.lineTo(-22, -6);
     ctx.closePath();
     ctx.fill();
   }
@@ -357,7 +362,7 @@ document.getElementById("startBtn").onclick = () => {
   resetPlayer();
   score = 0;
   multiplier = 1;
-  achievements.forEach(a => (a.unlocked = false));
+  achievements.forEach(a => a.unlocked = false);
   updateAchievementProgress();
   startTime = performance.now();
   lastTime = startTime;
