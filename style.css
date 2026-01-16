@@ -1,3 +1,5 @@
+/* base reset + theme */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -14,38 +16,69 @@ body {
 canvas {
   display: block;
   pointer-events: none;
+  filter: none;
+  opacity: 1;
 }
 
 /* hud */
+
 .hud {
   position: fixed;
   top: 16px;
   left: 16px;
+
   display: flex;
-  align-items: center;
+  align-items: center;      /* vertical centering */
   gap: 20px;
+
   padding: 14px 20px;
   border-radius: 16px;
+
   background: rgba(20, 24, 50, 0.6);
   backdrop-filter: blur(8px);
+
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 15px;
   z-index: 5;
 }
 
-.hud button {
-  font-size: 12px;
-  padding: 6px 14px;
+/* text blocks inside hud */
+.hud span,
+.hud .lives {
+  display: flex;
+  align-items: center;
 }
 
-/* overlays */
+/* pause button alignment fix */
+.hud button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 28px;
+  line-height: 1;
+
+  font-size: 12px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+}
+
+.hud .lives:not(:first-of-type) {
+  display: none;
+}
+
+/* overlays (shared) */
+
 .overlay {
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
+
   background: rgba(5, 7, 15, 0.75);
   backdrop-filter: blur(6px);
+
   z-index: 20;
 }
 
@@ -53,25 +86,29 @@ canvas {
   display: none;
 }
 
-/* base info box */
+/* frosted info box */
+
 .info-box {
   background: rgba(15, 18, 40, 0.95);
   padding: 36px 42px;
   border-radius: 20px;
+
   text-align: center;
   width: 460px;
   max-width: calc(100vw - 40px);
+
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* typography rhythm */
 .info-box h1 {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .info-box h2 {
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 500;
   margin-bottom: 14px;
   opacity: 0.85;
@@ -81,19 +118,31 @@ canvas {
   font-size: 14px;
   margin-bottom: 10px;
   opacity: 0.75;
+  line-height: 1.5;
 }
 
 /* buttons */
+
 .btn {
   margin-top: 16px;
   padding: 10px 22px;
+
   font-size: 14px;
   font-weight: 500;
+
   border-radius: 999px;
   border: none;
+
   background: #6fa8ff;
   color: #05070f;
+
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 4px rgba(111, 168, 255, 0.15);
 }
 
 .btn.ghost {
@@ -102,14 +151,17 @@ canvas {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* =========================
-   achievements screen fix
-   ========================= */
+.btn.ghost:hover {
+  box-shadow: 0 0 0 4px rgba(207, 214, 255, 0.1);
+}
+
+/*achievements overlay */
 
 #achievementsOverlay .info-box {
   text-align: left;
   width: 420px;
-  max-height: 70vh;              /* critical */
+
+  max-height: 70vh;
   display: flex;
   flex-direction: column;
 }
@@ -118,30 +170,43 @@ canvas {
 #achievementsList {
   list-style: none;
   margin-top: 18px;
+
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;              /* critical */
+
+  overflow-y: auto;
   padding-right: 6px;
   flex: 1;
+
+  /* firefox scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
 }
 
-/* scrollbar (optional aesthetic) */
+/* webkit scrollbar */
 #achievementsList::-webkit-scrollbar {
   width: 6px;
 }
 
+#achievementsList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 #achievementsList::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 6px;
 }
 
+/* achievement item */
 #achievementsList li {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   padding: 14px 16px;
   border-radius: 12px;
+
   background: rgba(255, 255, 255, 0.04);
 }
 

@@ -55,21 +55,26 @@
 
   <!-- end overlay -->
   <div id="endOverlay" class="overlay hidden">
-    <div class="info-box" style="max-width: 500px;">
+    <div class="info-box">
       <h1>mission failed</h1>
       <h2 id="deathMessage">gravity wins again</h2>
-      <p id="finalTimeDisplay">time survived: 0s | score: 0</p>
-      <button id="deathRestartBtn" class="btn">try again</button>
-      <button id="checkAchievementsBtn" class="btn ghost">check achievements</button>
+      <p id="finalTimeDisplay">time survived: 0s • score: 0</p>
+      <div class="end-buttons">
+        <button id="deathRestartBtn" class="btn">try again</button>
+        <button id="achievementsBtn" class="btn ghost">achievements</button>
+      </div>
     </div>
   </div>
 
   <!-- achievements overlay -->
   <div id="achievementsOverlay" class="overlay hidden">
-    <div class="info-box" style="max-width: 400px;">
+    <div class="info-box">
       <h2>achievements</h2>
-      <ul id="achievementsList" style="text-align: left; margin-top: 12px;"></ul>
-      <button id="closeAchievementsBtn" class="btn ghost">close</button>
+      <div id="achievementsProgressContainer">
+        <div id="achievementsProgressBar"></div>
+      </div>
+      <ul id="achievementsList"></ul>
+      <button id="closeAchievements" class="btn ghost">close</button>
     </div>
   </div>
 
