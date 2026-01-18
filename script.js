@@ -28,10 +28,11 @@ let cameraY = 0;
 // input
 const keys = {};
 document.addEventListener("keydown", e => {
-  keys[e.key.toLowerCase()] = true;
+  const key = e.key.toLowerCase();
+  keys[key] = true;
 
   // pause via space
-  if (e.key === " " && alive && gameStarted && !tutorialMode) {
+  if (key === " " && alive && gameStarted) {
     paused = !paused;
     showOverlay(paused ? pauseOverlay : null);
   }
@@ -56,43 +57,36 @@ let orbitCounter = 0;
 const planets = [];
 const orbitData = new Map();
 
+// achievements tracking
+let totalWPresses = 0;
+let consecutiveOrbits = 0;
+let orbitWithoutThrust = false;
+let nearMissCounts = new Map();
+let rotationWithoutThrust = 0;
+let lastAngle = 0;
+
 // achievements
 const achievements = [
-  {
-    name: "first orbit",
-    description: "complete your first orbit",
-    unlocked: false,
-    check: () => orbitCounter >= 1
-  },
-  {
-    name: "planet hopper",
-    description: "orbit 3 different planets",
-    unlocked: false,
-    check: () => orbitCounter >= 3
-  },
-  {
-    name: "survivor",
-    description: "survive 60 seconds",
-    unlocked: false,
-    check: () => elapsedTime >= 60
-  },
-  {
-    name: "multiplier master",
-    description: "reach max score multiplier",
-    unlocked: false,
-    check: () => multiplier >= 3
-  },
-  {
-    name: "endurance orbit",
-    description: "orbit one planet for 60 seconds",
-    unlocked: false,
-    check: () => {
-      for (let data of orbitData.values()) {
-        if (data.time >= 60000) return true;
-      }
-      return false;
-    }
-  }
+  { name: "first thrust", description: "press w for the first time", unlocked: false, check: () => totalWPresses > 0 },
+  { name: "first rotation", description: "rotate your ship at least once", unlocked: false, check: () => rotationWithoutThrust > 0 },
+  { name: "first brake", description: "slow down using s", unlocked: false, check: () => keys["s"] },
+  { name: "first orbit", description: "complete your first orbit", unlocked: false, check: () => orbitCounter >= 1 },
+  { name: "close call", description: "fly within 10 pixels of a planet without crashing", unlocked: false, check: () => [...nearMissCounts.values()].some(v => v >= 1) },
+  { name: "double orbit", description: "orbit the same planet twice in a row", unlocked: false, check: () => consecutiveOrbits >= 2 },
+  { name: "triple threat", description: "orbit 3 different planets", unlocked: false, check: () => orbitCounter >= 3 },
+  { name: "time traveler", description: "survive 30 seconds", unlocked: false, check: () => elapsedTime >= 30 },
+  { name: "speed demon", description: "reach top speed", unlocked: false, check: () => ship.speed >= 10 },
+  { name: "perfect alignment", description: "rotate 360° without using thrust", unlocked: false, check: () => rotationWithoutThrust >= Math.PI * 2 },
+  { name: "survivor", description: "survive 60 seconds", unlocked: false, check: () => elapsedTime >= 60 },
+  { name: "endurance orbit", description: "orbit one planet for 60 seconds", unlocked: false, check: () => { for (let data of orbitData.values()) if (data.time >= 60000) return true; return false; } },
+  { name: "gravity master", description: "complete an orbit without pressing w", unlocked: false, check: () => orbitWithoutThrust },
+  { name: "loop-de-loop", description: "orbit two planets consecutively without crashing", unlocked: false, check: () => consecutiveOrbits >= 2 },
+  { name: "near miss expert", description: "pass within 5 pixels of 3 different planets in one run", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 3 },
+  { name: "multiplier master", description: "reach max score multiplier", unlocked: false, check: () => multiplier >= 3 },
+  { name: "pacifist pilot", description: "complete a run without pressing brake", unlocked: false, check: () => !keys["s"] },
+  { name: "marathon orbit", description: "orbit planets continuously for 2 minutes", unlocked: false, check: () => consecutiveOrbits >= 120 },
+  { name: "space tourist", description: "pass by 5 planets without orbiting", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 5 },
+  { name: "thruster enthusiast", description: "press w more than 100 times in one run", unlocked: false, check: () => totalWPresses >= 100 }
 ];
 
 // overlays
@@ -196,7 +190,6 @@ const deathMessages = [
   "thrusters offline.",
   "crash course in gravity.",
   "your ship disagrees.",
-  "asteroid envy.",
   "planetary hug gone wrong.",
   "lost in the void again.",
   "trajectory miscalculated.",
@@ -210,7 +203,6 @@ const deathMessages = [
   "planetary welcome committee engaged.",
   "too close for comfort.",
   "crash landing imminent.",
-  "space doesn’t negotiate.",
   "wrong vector.",
   "better aim next time."
 ];
@@ -241,101 +233,27 @@ function die() {
   showOverlay(endOverlay);
 }
 
-// tutorial state
-let tutorialMode = false;
-let tutorialActive = false;
-let tutorialIndex = 0;
-
-// tutorial steps
-const tutorialSteps = [
-  { title: "thrust", text: "press w to move forward", action: () => ship.speed > 0 },
-  { title: "rotate", text: "press a or d to rotate", action: () => keys["a"] || keys["d"] },
-  { title: "brake", text: "press s to slow down", action: () => keys["s"] },
-  { title: "orbit", text: "try orbiting a planet", action: () => orbitCounter > 0 },
-  { title: "done", text: "tutorial complete! returning to start screen", action: () => true }
-];
-
-const sidebar = document.getElementById("tutorialSidebar");
-const tutorialTitle = document.getElementById("tutorialTitle");
-const tutorialText = document.getElementById("tutorialText");
-
-// show tutorial step
-function showTutorialStep(index) {
-  const step = tutorialSteps[index];
-  tutorialTitle.textContent = step.title;
-  tutorialText.textContent = step.text;
-}
-
-// start tutorial
-document.getElementById("startTutorialBtn").onclick = () => {
-  tutorialMode = true;
-  tutorialActive = true;
-  tutorialIndex = 0;
-  sidebar.classList.remove("hidden");
-  showTutorialStep(tutorialIndex);
-  showOverlay(null); // hide "how to play" overlay
-  generatePlanets();
-  resetPlayer();
-};
-
-// skip tutorial
-document.getElementById("skipTutorialBtn").onclick = () => {
-  tutorialMode = false;
-  tutorialActive = false;
-  sidebar.classList.add("hidden");
-  showOverlay(startOverlay);
-};
-
-// next button (manual override)
-document.getElementById("nextTutorialBtn").onclick = () => {
-  tutorialIndex++;
-  if (tutorialIndex >= tutorialSteps.length) {
-    tutorialMode = false;
-    tutorialActive = false;
-    sidebar.classList.add("hidden");
-    paused = true;
-    showOverlay(startOverlay);
-  } else {
-    showTutorialStep(tutorialIndex);
-  }
-};
-
-// auto progress check
-function checkTutorialProgress() {
-  if (!tutorialActive) return;
-
-  const step = tutorialSteps[tutorialIndex];
-  if (step && step.action()) {
-    tutorialIndex++;
-    if (tutorialIndex >= tutorialSteps.length) {
-      tutorialMode = false;
-      tutorialActive = false;
-      sidebar.classList.add("hidden");
-      paused = true;
-      showOverlay(startOverlay);
-    } else {
-      showTutorialStep(tutorialIndex);
-    }
-  }
-}
-
 // update
 function update(dt) {
   if (!alive || paused) return;
 
   // control ship
-  if (keys["w"]) ship.speed += 0.0007 * dt;
+  if (keys["w"]) {
+    ship.speed += 0.0007 * dt;
+    totalWPresses++;
+  }
   if (keys["a"]) ship.angle -= 0.004 * dt;
   if (keys["d"]) ship.angle += 0.004 * dt;
-  if (keys["s"]) ship.speed *= 0.98;
 
   ship.x += Math.cos(ship.angle) * ship.speed * dt;
   ship.y += Math.sin(ship.angle) * ship.speed * dt;
 
+  // rotation without thrust
+  if (!keys["w"] && (keys["a"] || keys["d"])) rotationWithoutThrust += Math.abs(ship.angle - lastAngle);
+  lastAngle = ship.angle;
+
   // only count time if moving
-  if (!tutorialMode && ship.speed > 0) {
-    elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-  }
+  if (ship.speed > 0) elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
 
   // orbit detection
   planets.forEach(p => {
@@ -354,39 +272,40 @@ function update(dt) {
 
       data.last = ang;
 
+      // track orbit without thrust
+      if (!keys["w"]) orbitWithoutThrust = true;
+
       if (!data.done && data.angle >= Math.PI * 2 * 0.9) {
         data.done = true;
         orbitCounter++;
-        if (!tutorialMode) {
-          score += Math.floor(100 * multiplier);
-          multiplier = Math.min(multiplier + 0.3, 3);
-          checkAchievements();
-        }
+        score += Math.floor(100 * multiplier);
+        multiplier = Math.min(multiplier + 0.3, 3);
+        consecutiveOrbits++;
+        checkAchievements();
+        orbitWithoutThrust = false;
+        nearMissCounts.set(p, 0);
       }
     } else {
       data.last = null;
       data.time = 0;
+
+      if (dist < p.size + ship.size + 10 && dist > p.size + ship.size) {
+        const prev = nearMissCounts.get(p) || 0;
+        nearMissCounts.set(p, prev + 1);
+      }
     }
 
-    if (!tutorialMode && dist < p.size + ship.size) die();
+    if (dist < p.size + ship.size) die();
   });
 
-  // camera follows ship always
   cameraX += (ship.x - cameraX - canvas.width / 2) * 0.06;
   cameraY += (ship.y - cameraY - canvas.height / 2) * 0.06;
 
-  // HUD
-  if (!tutorialMode) {
-    const full = "♥".repeat(lives);
-    const empty = "♡".repeat(3 - lives);
-    document.getElementById("timerDisplay").textContent =
-      `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
-  } else {
-    document.getElementById("timerDisplay").textContent = `tutorial mode`;
-  }
-
-  // tutorial check
-  checkTutorialProgress();
+  // hud hearts
+  const full = "♥".repeat(lives);
+  const empty = "♡".repeat(3 - lives);
+  document.getElementById("timerDisplay").textContent =
+    `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
 }
 
 // draw
@@ -409,7 +328,6 @@ function draw() {
   ctx.translate(ship.x, ship.y);
   ctx.rotate(ship.angle);
 
-  // draw ship
   ctx.fillStyle = "#fff";
   ctx.beginPath();
   ctx.moveTo(22, 0);
@@ -437,51 +355,57 @@ function draw() {
 function loop(t) {
   const dt = t - lastTime;
   lastTime = t;
-  if (!paused) update(dt);
+  update(dt);
   draw();
+  checkTutorialProgress();
   requestAnimationFrame(loop);
 }
 
-// start game
-document.getElementById("startBtn").onclick = () => {
-  showOverlay(null);
-  gameStarted = true;
+// reset variables on new game
+function resetGame() {
   lives = 3;
-  generatePlanets();
-  resetPlayer();
   score = 0;
   multiplier = 1;
+  orbitCounter = 0;
+  elapsedTime = 0;
+  totalWPresses = 0;
+  consecutiveOrbits = 0;
+  orbitWithoutThrust = false;
+  rotationWithoutThrust = 0;
+  lastAngle = 0;
+  nearMissCounts.clear();
   achievements.forEach(a => a.unlocked = false);
   updateAchievementProgress();
+}
+
+// buttons
+document.getElementById("startBtn").onclick = () => {
+  resetGame();
+  generatePlanets();
+  resetPlayer();
+  gameStarted = true;
   startTime = performance.now();
   lastTime = startTime;
-  paused = false;
+  showOverlay(null);
+  requestAnimationFrame(loop);
 };
 
-// pause button
 document.getElementById("pauseBtn").onclick = () => {
-  if (!alive || tutorialMode) return;
+  if (!alive) return;
   paused = !paused;
   showOverlay(paused ? pauseOverlay : null);
 };
 
-// restart
 document.getElementById("deathRestartBtn").onclick = () => {
-  showOverlay(null);
-  lives = 3;
+  resetGame();
   generatePlanets();
   resetPlayer();
-  score = 0;
-  multiplier = 1;
-  startTime = performance.now();
-  paused = false;
+  showOverlay(null);
 };
 
-// achievements
 document.getElementById("achievementsBtn").onclick = () => {
   const list = document.getElementById("achievementsList");
   list.innerHTML = "";
-
   achievements.forEach(a => {
     const li = document.createElement("li");
     li.innerHTML = `
@@ -493,20 +417,84 @@ document.getElementById("achievementsBtn").onclick = () => {
     `;
     list.appendChild(li);
   });
-
   updateAchievementProgress();
   showOverlay(achievementsOverlay);
 };
 
-document.getElementById("closeAchievements").onclick = () =>
-  showOverlay(endOverlay);
+document.getElementById("closeAchievements").onclick = () => showOverlay(endOverlay);
+document.getElementById("infoBtnStart").onclick = () => showOverlay(infoOverlay);
+document.getElementById("closeInfoBtn").onclick = () => showOverlay(startOverlay);
 
-document.getElementById("infoBtnStart").onclick = () =>
-  showOverlay(infoOverlay);
+// tutorial logic
+let tutorialActive = false;
+let tutorialIndex = 0;
+const sidebar = document.getElementById("tutorialSidebar");
+const tutorialTitle = document.getElementById("tutorialTitle");
+const tutorialText = document.getElementById("tutorialText");
 
-document.getElementById("closeInfoBtn").onclick = () =>
+const tutorialSteps = [
+  { title: "thrust", text: "press w to move forward", action: () => keys["w"] },
+  { title: "rotate", text: "press a or d to rotate", action: () => keys["a"] || keys["d"] },
+  { title: "brake", text: "press s to slow down", action: () => keys["s"] },
+  { title: "orbit", text: "try orbiting a planet", action: () => orbitCounter > 0 },
+  { title: "done", text: "tutorial complete! returning to start screen", action: () => true }
+];
+
+function showTutorialStep(index) {
+  const step = tutorialSteps[index];
+  tutorialTitle.textContent = step.title;
+  tutorialText.textContent = step.text;
+}
+
+document.getElementById("startTutorialBtn").onclick = () => {
+  tutorialActive = true;
+  tutorialIndex = 0;
+  showTutorialStep(0);
+  sidebar.classList.remove("hidden");
+  showOverlay(null);
+
+  // pause game state during tutorial
+  paused = false;
+  gameStarted = true;
+  resetGame();
+  generatePlanets();
+  resetPlayer();
+  startTime = performance.now();
+  lastTime = startTime;
+  requestAnimationFrame(loop);
+};
+
+document.getElementById("skipTutorialBtn").onclick = () => {
+  tutorialActive = false;
+  sidebar.classList.add("hidden");
+  paused = true;
   showOverlay(startOverlay);
+};
 
-// initial call
-lastTime = performance.now();
-requestAnimationFrame(loop);
+document.getElementById("nextTutorialBtn").onclick = () => {
+  tutorialIndex++;
+  if (tutorialIndex >= tutorialSteps.length) {
+    tutorialActive = false;
+    sidebar.classList.add("hidden");
+    paused = true;
+    showOverlay(startOverlay);
+  } else {
+    showTutorialStep(tutorialIndex);
+  }
+};
+
+function checkTutorialProgress() {
+  if (!tutorialActive) return;
+  const step = tutorialSteps[tutorialIndex];
+  if (step && step.action()) {
+    tutorialIndex++;
+    if (tutorialIndex >= tutorialSteps.length) {
+      tutorialActive = false;
+      sidebar.classList.add("hidden");
+      paused = true;
+      showOverlay(startOverlay);
+    } else {
+      showTutorialStep(tutorialIndex);
+    }
+  }
+}
