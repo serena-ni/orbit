@@ -13,10 +13,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <!-- hud -->
   <div class="hud">
     <div id="timerDisplay">survived: 0.0s</div>
     <button id="pauseBtn" class="btn small">pause</button>
+  </div>
+
+  <!-- tutorial hud -->
+  <div id="tutorialHud" class="tutorial hidden">
+    <strong id="tutorialHudTitle"></strong>
+    <p id="tutorialHudText"></p>
   </div>
 
   <canvas id="game"></canvas>
@@ -39,37 +46,30 @@
     </div>
   </div>
 
-<!-- info overlay -->
-<div id="infoOverlay" class="overlay hidden">
-  <div class="info-box">
-    <h1>how to play</h1>
-    <p>
-      drift between planets, survive as long as you can,
-      and master gravity.
+  <!-- info overlay -->
+  <div id="infoOverlay" class="overlay hidden">
+    <div class="info-box">
+      <h1>how to play</h1>
+      <p>drift between planets and master gravity.</p>
       <p>w - thrust</p>
-      <p>a / d - rotate left / right</p>
+      <p>a / d - rotate</p>
       <p>s - brake</p>
       <p>space - pause</p>
-    </p>
 
-    <button class="btn" id="startTutorialBtn">start tutorial</button>
-    <button class="btn ghost" onclick="closeInfo()">close</button>
-  </div>
-</div>
-
-<!-- tutorial overlay -->
-<div id="tutorialOverlay" class="overlay hidden">
-  <div class="info-box">
-    <h2 id="tutorialTitle">welcome</h2>
-    <p id="tutorialText"></p>
-
-    <div style="display:flex; gap:12px; justify-content:center;">
-      <button class="btn ghost" id="skipTutorialBtn">skip</button>
-      <button class="btn" id="nextTutorialBtn">next</button>
+      <button class="btn" id="startTutorialBtn">start tutorial</button>
+      <button class="btn ghost" id="closeInfoBtn">close</button>
     </div>
   </div>
-</div>
 
+  <!-- tutorial sidebar -->
+  <div id="tutorialSidebar" class="tutorial-sidebar hidden">
+    <h2 id="tutorialTitle">tutorial step</h2>
+    <p id="tutorialText"></p>
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:12px;">
+     <button class="btn ghost" id="skipTutorialBtn">skip</button>
+     <button class="btn" id="nextTutorialBtn">next</button>
+    </div>
+  </div>
 
   <!-- end overlay -->
   <div id="endOverlay" class="overlay hidden">

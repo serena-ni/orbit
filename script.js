@@ -31,7 +31,7 @@ document.addEventListener("keydown", e => {
   keys[e.key.toLowerCase()] = true;
 
   // pause via space
-  if (e.key === " " && alive && gameStarted) {
+  if (e.key === " " && alive && gameStarted && !tutorialMode) {
     paused = !paused;
     showOverlay(paused ? pauseOverlay : null);
   }
@@ -204,7 +204,7 @@ const deathMessages = [
   "orbital mechanics, 1 - you, 0.",
   "that’s one small misstep for you.",
   "gravity has plans.",
-  "the void calls.",
+  "the void calls.", 
   "not even close to escape velocity.",
   "contact detected... with a planet.",
   "planetary welcome committee engaged.",
@@ -241,6 +241,84 @@ function die() {
   showOverlay(endOverlay);
 }
 
+// tutorial state
+let tutorialMode = false;
+let tutorialActive = false;
+let tutorialIndex = 0;
+
+// tutorial steps
+const tutorialSteps = [
+  { title: "thrust", text: "press w to move forward", action: () => ship.speed > 0 },
+  { title: "rotate", text: "press a or d to rotate", action: () => keys["a"] || keys["d"] },
+  { title: "brake", text: "press s to slow down", action: () => keys["s"] },
+  { title: "orbit", text: "try orbiting a planet", action: () => orbitCounter > 0 },
+  { title: "done", text: "tutorial complete! returning to start screen", action: () => true }
+];
+
+const sidebar = document.getElementById("tutorialSidebar");
+const tutorialTitle = document.getElementById("tutorialTitle");
+const tutorialText = document.getElementById("tutorialText");
+
+// show tutorial step
+function showTutorialStep(index) {
+  const step = tutorialSteps[index];
+  tutorialTitle.textContent = step.title;
+  tutorialText.textContent = step.text;
+}
+
+// start tutorial
+document.getElementById("startTutorialBtn").onclick = () => {
+  tutorialMode = true;
+  tutorialActive = true;
+  tutorialIndex = 0;
+  sidebar.classList.remove("hidden");
+  showTutorialStep(tutorialIndex);
+  showOverlay(null); // hide "how to play" overlay
+  generatePlanets();
+  resetPlayer();
+};
+
+// skip tutorial
+document.getElementById("skipTutorialBtn").onclick = () => {
+  tutorialMode = false;
+  tutorialActive = false;
+  sidebar.classList.add("hidden");
+  showOverlay(startOverlay);
+};
+
+// next button (manual override)
+document.getElementById("nextTutorialBtn").onclick = () => {
+  tutorialIndex++;
+  if (tutorialIndex >= tutorialSteps.length) {
+    tutorialMode = false;
+    tutorialActive = false;
+    sidebar.classList.add("hidden");
+    paused = true;
+    showOverlay(startOverlay);
+  } else {
+    showTutorialStep(tutorialIndex);
+  }
+};
+
+// auto progress check
+function checkTutorialProgress() {
+  if (!tutorialActive) return;
+
+  const step = tutorialSteps[tutorialIndex];
+  if (step && step.action()) {
+    tutorialIndex++;
+    if (tutorialIndex >= tutorialSteps.length) {
+      tutorialMode = false;
+      tutorialActive = false;
+      sidebar.classList.add("hidden");
+      paused = true;
+      showOverlay(startOverlay);
+    } else {
+      showTutorialStep(tutorialIndex);
+    }
+  }
+}
+
 // update
 function update(dt) {
   if (!alive || paused) return;
@@ -249,12 +327,13 @@ function update(dt) {
   if (keys["w"]) ship.speed += 0.0007 * dt;
   if (keys["a"]) ship.angle -= 0.004 * dt;
   if (keys["d"]) ship.angle += 0.004 * dt;
+  if (keys["s"]) ship.speed *= 0.98;
 
   ship.x += Math.cos(ship.angle) * ship.speed * dt;
   ship.y += Math.sin(ship.angle) * ship.speed * dt;
 
   // only count time if moving
-  if (ship.speed > 0) {
+  if (!tutorialMode && ship.speed > 0) {
     elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
   }
 
@@ -278,26 +357,36 @@ function update(dt) {
       if (!data.done && data.angle >= Math.PI * 2 * 0.9) {
         data.done = true;
         orbitCounter++;
-        score += Math.floor(100 * multiplier);
-        multiplier = Math.min(multiplier + 0.3, 3);
-        checkAchievements();
+        if (!tutorialMode) {
+          score += Math.floor(100 * multiplier);
+          multiplier = Math.min(multiplier + 0.3, 3);
+          checkAchievements();
+        }
       }
     } else {
       data.last = null;
       data.time = 0;
     }
 
-    if (dist < p.size + ship.size) die();
+    if (!tutorialMode && dist < p.size + ship.size) die();
   });
 
+  // camera follows ship always
   cameraX += (ship.x - cameraX - canvas.width / 2) * 0.06;
   cameraY += (ship.y - cameraY - canvas.height / 2) * 0.06;
 
-  // hud hearts
-  const full = "♥".repeat(lives);
-  const empty = "♡".repeat(3 - lives);
-  document.getElementById("timerDisplay").textContent =
-    `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
+  // HUD
+  if (!tutorialMode) {
+    const full = "♥".repeat(lives);
+    const empty = "♡".repeat(3 - lives);
+    document.getElementById("timerDisplay").textContent =
+      `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
+  } else {
+    document.getElementById("timerDisplay").textContent = `tutorial mode`;
+  }
+
+  // tutorial check
+  checkTutorialProgress();
 }
 
 // draw
@@ -329,7 +418,7 @@ function draw() {
   ctx.closePath();
   ctx.fill();
 
-  // small orange thrust flame if pressing W
+  // thrust flame
   if (keys["w"]) {
     ctx.fillStyle = "#ff9566";
     ctx.beginPath();
@@ -348,12 +437,12 @@ function draw() {
 function loop(t) {
   const dt = t - lastTime;
   lastTime = t;
-  update(dt);
+  if (!paused) update(dt);
   draw();
   requestAnimationFrame(loop);
 }
 
-// buttons
+// start game
 document.getElementById("startBtn").onclick = () => {
   showOverlay(null);
   gameStarted = true;
@@ -366,15 +455,17 @@ document.getElementById("startBtn").onclick = () => {
   updateAchievementProgress();
   startTime = performance.now();
   lastTime = startTime;
-  requestAnimationFrame(loop);
+  paused = false;
 };
 
+// pause button
 document.getElementById("pauseBtn").onclick = () => {
-  if (!alive) return;
+  if (!alive || tutorialMode) return;
   paused = !paused;
   showOverlay(paused ? pauseOverlay : null);
 };
 
+// restart
 document.getElementById("deathRestartBtn").onclick = () => {
   showOverlay(null);
   lives = 3;
@@ -383,8 +474,10 @@ document.getElementById("deathRestartBtn").onclick = () => {
   score = 0;
   multiplier = 1;
   startTime = performance.now();
+  paused = false;
 };
 
+// achievements
 document.getElementById("achievementsBtn").onclick = () => {
   const list = document.getElementById("achievementsList");
   list.innerHTML = "";
@@ -413,3 +506,7 @@ document.getElementById("infoBtnStart").onclick = () =>
 
 document.getElementById("closeInfoBtn").onclick = () =>
   showOverlay(startOverlay);
+
+// initial call
+lastTime = performance.now();
+requestAnimationFrame(loop);
