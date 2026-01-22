@@ -67,10 +67,14 @@ let lastAngle = 0;
 
 // achievements
 const achievements = [
+  
+  // easy
   { name: "first thrust", description: "press w for the first time", unlocked: false, check: () => totalWPresses > 0 },
   { name: "first rotation", description: "rotate your ship at least once", unlocked: false, check: () => rotationWithoutThrust > 0 },
   { name: "first brake", description: "slow down using s", unlocked: false, check: () => keys["s"] },
   { name: "first orbit", description: "complete your first orbit", unlocked: false, check: () => orbitCounter >= 1 },
+  
+  // medium
   { name: "close call", description: "fly within 10 pixels of a planet without crashing", unlocked: false, check: () => [...nearMissCounts.values()].some(v => v >= 1) },
   { name: "double orbit", description: "orbit the same planet twice in a row", unlocked: false, check: () => consecutiveOrbits >= 2 },
   { name: "triple threat", description: "orbit 3 different planets", unlocked: false, check: () => orbitCounter >= 3 },
@@ -79,11 +83,15 @@ const achievements = [
   { name: "perfect alignment", description: "rotate 360° without using thrust", unlocked: false, check: () => rotationWithoutThrust >= Math.PI * 2 },
   { name: "survivor", description: "survive 60 seconds", unlocked: false, check: () => elapsedTime >= 60 },
   { name: "endurance orbit", description: "orbit one planet for 60 seconds", unlocked: false, check: () => { for (let data of orbitData.values()) if (data.time >= 60000) return true; return false; } },
+  
+  // hard
   { name: "gravity master", description: "complete an orbit without pressing w", unlocked: false, check: () => orbitWithoutThrust },
   { name: "loop-de-loop", description: "orbit two planets consecutively without crashing", unlocked: false, check: () => consecutiveOrbits >= 2 },
   { name: "near miss expert", description: "pass within 5 pixels of 3 different planets in one run", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 3 },
   { name: "multiplier master", description: "reach max score multiplier", unlocked: false, check: () => multiplier >= 3 },
   { name: "pacifist pilot", description: "complete a run without pressing brake", unlocked: false, check: () => !keys["s"] },
+  
+  // special
   { name: "marathon orbit", description: "orbit planets continuously for 2 minutes", unlocked: false, check: () => consecutiveOrbits >= 120 },
   { name: "space tourist", description: "pass by 5 planets without orbiting", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 5 },
   { name: "thruster enthusiast", description: "press w more than 100 times in one run", unlocked: false, check: () => totalWPresses >= 100 }
@@ -170,7 +178,7 @@ function checkAchievements() {
   });
 }
 
-// death
+// death messages
 const deathMessages = [
   "gravity wins again.",
   "too fast. every time.",
@@ -207,6 +215,7 @@ const deathMessages = [
   "better aim next time."
 ];
 
+// death
 function die() {
   if (!alive) return;
 
@@ -242,17 +251,17 @@ function update(dt) {
     ship.speed += 0.0007 * dt;
     totalWPresses++;
   }
-  if (keys["a"]) ship.angle -= 0.004 * dt;
-  if (keys["d"]) ship.angle += 0.004 * dt;
+  if (keys["a"]) ship.angle -= 0.004 * dt; // rotate left
+  if (keys["d"]) ship.angle += 0.004 * dt; // rotate right
 
   ship.x += Math.cos(ship.angle) * ship.speed * dt;
   ship.y += Math.sin(ship.angle) * ship.speed * dt;
 
-  // rotation without thrust
+  // rotation w/out thrust
   if (!keys["w"] && (keys["a"] || keys["d"])) rotationWithoutThrust += Math.abs(ship.angle - lastAngle);
   lastAngle = ship.angle;
 
-  // only count time if moving
+  // only count time if MOVING
   if (ship.speed > 0) elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
 
   // orbit detection
@@ -305,7 +314,7 @@ function update(dt) {
   const full = "♥".repeat(lives);
   const empty = "♡".repeat(3 - lives);
   document.getElementById("timerDisplay").textContent =
-    `hull: ${full}${empty} • ${elapsedTime}s • x${multiplier.toFixed(1)}`;
+    `hull: ${full}${empty} • ${elapsedTime}s • x ${multiplier.toFixed(1)}`;
 }
 
 // draw
@@ -483,7 +492,7 @@ document.getElementById("nextTutorialBtn").onclick = () => {
   }
 };
 
-function checkTutorialProgress() {
+function checkTutorialProgress() { 
   if (!tutorialActive) return;
   const step = tutorialSteps[tutorialIndex];
   if (step && step.action()) {
