@@ -1,8 +1,6 @@
-// canvas
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// resize
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -10,22 +8,17 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// state
 let gameStarted = false;
 let paused = false;
 let alive = true;
 let lastTime = 0;
 let startTime = 0;
 let elapsedTime = 0;
-
-// lives
 let lives = 3;
 
-// camera
 let cameraX = 0;
 let cameraY = 0;
 
-// input
 const keys = {};
 document.addEventListener("keydown", e => {
   const key = e.key.toLowerCase();
@@ -39,7 +32,6 @@ document.addEventListener("keydown", e => {
 });
 document.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// player
 const ship = {
   x: 0,
   y: 0,
@@ -48,16 +40,14 @@ const ship = {
   size: 22
 };
 
-// score
 let score = 0;
 let multiplier = 1;
 let orbitCounter = 0;
 
-// planets
 const planets = [];
 const orbitData = new Map();
 
-// achievements tracking
+// achievement tracking
 let totalWPresses = 0;
 let consecutiveOrbits = 0;
 let orbitWithoutThrust = false;
@@ -65,16 +55,11 @@ let nearMissCounts = new Map();
 let rotationWithoutThrust = 0;
 let lastAngle = 0;
 
-// achievements
 const achievements = [
-  
-  // easy
   { name: "first thrust", description: "press w for the first time", unlocked: false, check: () => totalWPresses > 0 },
   { name: "first rotation", description: "rotate your ship at least once", unlocked: false, check: () => rotationWithoutThrust > 0 },
   { name: "first brake", description: "slow down using s", unlocked: false, check: () => keys["s"] },
   { name: "first orbit", description: "complete your first orbit", unlocked: false, check: () => orbitCounter >= 1 },
-  
-  // medium
   { name: "close call", description: "fly within 10 pixels of a planet without crashing", unlocked: false, check: () => [...nearMissCounts.values()].some(v => v >= 1) },
   { name: "double orbit", description: "orbit the same planet twice in a row", unlocked: false, check: () => consecutiveOrbits >= 2 },
   { name: "triple threat", description: "orbit 3 different planets", unlocked: false, check: () => orbitCounter >= 3 },
@@ -83,15 +68,11 @@ const achievements = [
   { name: "perfect alignment", description: "rotate 360° without using thrust", unlocked: false, check: () => rotationWithoutThrust >= Math.PI * 2 },
   { name: "survivor", description: "survive 60 seconds", unlocked: false, check: () => elapsedTime >= 60 },
   { name: "endurance orbit", description: "orbit one planet for 60 seconds", unlocked: false, check: () => { for (let data of orbitData.values()) if (data.time >= 60000) return true; return false; } },
-  
-  // hard
   { name: "gravity master", description: "complete an orbit without pressing w", unlocked: false, check: () => orbitWithoutThrust },
   { name: "loop-de-loop", description: "orbit two planets consecutively without crashing", unlocked: false, check: () => consecutiveOrbits >= 2 },
   { name: "near miss expert", description: "pass within 5 pixels of 3 different planets in one run", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 3 },
   { name: "multiplier master", description: "reach max score multiplier", unlocked: false, check: () => multiplier >= 3 },
   { name: "pacifist pilot", description: "complete a run without pressing brake", unlocked: false, check: () => !keys["s"] },
-  
-  // special
   { name: "marathon orbit", description: "orbit planets continuously for 2 minutes", unlocked: false, check: () => consecutiveOrbits >= 120 },
   { name: "space tourist", description: "pass by 5 planets without orbiting", unlocked: false, check: () => [...nearMissCounts.values()].filter(v => v >= 1).length >= 5 },
   { name: "thruster enthusiast", description: "press w more than 100 times in one run", unlocked: false, check: () => totalWPresses >= 100 }
@@ -433,6 +414,25 @@ document.getElementById("achievementsBtn").onclick = () => {
 document.getElementById("closeAchievements").onclick = () => showOverlay(endOverlay);
 document.getElementById("infoBtnStart").onclick = () => showOverlay(infoOverlay);
 document.getElementById("closeInfoBtn").onclick = () => showOverlay(startOverlay);
+
+document.getElementById("achievementsBtnStart").onclick = () => {
+  const list = document.getElementById("achievementsList");
+  list.innerHTML = "";
+  achievements.forEach(a => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div class="achievement-text">
+        <strong>${a.name}</strong>
+        <span>${a.description}</span>
+      </div>
+      <div class="achievement-status">${a.unlocked ? "✓ unlocked" : "locked"}</div>
+    `;
+    list.appendChild(li);
+  });
+  updateAchievementProgress();
+  showOverlay(achievementsOverlay);
+};
+
 
 // tutorial logic
 let tutorialActive = false;
